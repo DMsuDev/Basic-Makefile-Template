@@ -33,7 +33,7 @@ SRC_EXT ?= cpp
 LANGUAGE ?= c++23
 
 # Define compiler to use
-CXX ?= g++
+CXX := g++
 
 # Default build type when running plain `make`
 .DEFAULT_GOAL := run
