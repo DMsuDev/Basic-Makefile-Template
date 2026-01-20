@@ -15,6 +15,8 @@ Supports Windows (**MinGW-w64/MSYS2**), **Linux**, and **macOS** with minimal co
 
 Designed to be simple, readable, and easy to extend — ideal for game engines, tools, small-to-medium applications, learning projects, or as a starting point.
 
+![Demo](.github/readme/demo.gif)
+
 ## Features
 
 - Debug & Release configurations
