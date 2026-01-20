@@ -9,6 +9,17 @@
 # ==============================================================================
 
 # ──────────────────────────────────────────────────────────────────────────────
+# 0. Primary Build Configuration
+# ──────────────────────────────────────────────────────────────────────────────
+
+# 0 = Silent Mode; 1 = Color & Details Mode
+ifneq ($(filter -j%,$(MAKEFLAGS)),)
+    VERBOSE := 0
+else
+    VERBOSE := 1
+endif
+
+# ──────────────────────────────────────────────────────────────────────────────
 # 1. Main configuration – customize these variables
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -37,6 +48,30 @@ USE_CONSOLE ?= true
 # Optimization levels
 OPT_RELEASE ?= -O3
 OPT_DEBUG   ?= -O0
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 1.5 Colors (ANSI escape codes) – used for pretty output
+# ──────────────────────────────────────────────────────────────────────────────
+
+ifeq ($(VERBOSE),1)
+    NO_COLOR     := \033[0m
+    BOLD         := \033[1m
+    OK_COLOR     := \033[32;01m
+    WARN_COLOR   := \033[33;01m
+    ERROR_COLOR  := \033[31;01m
+    INFO_COLOR   := \033[36;01m
+    TITLE_COLOR  := \033[35;01m
+    HIGHLIGHT    := \033[95;01m
+else
+    NO_COLOR     :=
+    BOLD         :=
+    OK_COLOR     :=
+    WARN_COLOR   :=
+    ERROR_COLOR  :=
+    INFO_COLOR   :=
+    TITLE_COLOR  :=
+    HIGHLIGHT    :=
+endif
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 2. Paths – usually no need to change
@@ -72,7 +107,7 @@ LIBS :=
 ifeq ($(OS),Windows_NT)
     # Windows / MinGW common
     LIBS += -lgdi32 -lopengl32
-    # LIBS += -lglfw3dll                    # dynamic (most common)
+    # LIBS += -lglfw3dll                    # dynamic GLFW (most common)
     # LIBS += -luser32 -lkernel32 -lwinmm   # useful libs (Only MinGW)
 endif
 
