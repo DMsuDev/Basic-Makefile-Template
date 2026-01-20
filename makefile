@@ -204,15 +204,38 @@ dirs:
 	@$(MKDIR) "$(call FIXPATH,$(DEP_DIR))"
 
 $(OBJ_DIR)/%.o : %.$(SRC_EXT) | dirs
-	@echo "[Compiling]  $<  →  $@"
-	@$(MKDIR) "$(@D)"
-	@$(MKDIR) "$(call FIXPATH,$(DEP_DIR)/$(dir $<))"
-	@$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEPFLAGS) -c $< -o $@
+ifeq ($(VERBOSE),1)
+	@printf "  $(OK_COLOR)Compiling$(NO_COLOR)  %-40s " "$<"
+else
+	@printf "[Compiling] -> %s\n" "$<"
+endif
+	@$(MKDIR) "$(@D)" >/dev/null 2>&1
+	@$(MKDIR) "$(call FIXPATH,$(dir $(DEP_DIR)/$<))" >/dev/null 2>&1
+	@if $(CXX) $(CXXFLAGS) $(INCLUDES) $(DEPFLAGS) -c $< -o $@ 2>compile.log; then \
+		if [ "$(VERBOSE)" = "1" ]; then \
+			printf "$(OK_COLOR)✓$(NO_COLOR)\n"; \
+		fi; \
+		rm -f compile.log; \
+	else \
+		if [ "$(VERBOSE)" = "1" ]; then \
+			printf "$(ERROR_COLOR)✗$(NO_COLOR)\n"; \
+			echo "$(ERROR_COLOR)Compilation failed for $<$(NO_COLOR)"; \
+		else \
+			echo "[Error] On compilation $<"; \
+		fi; \
+		cat compile.log; \
+		rm -f compile.log; \
+		exit 1; \
+	fi
 
 $(BIN_DIR)/$(TARGET): $(OBJECTS)
-	@echo "[Linking]    $@"
-	@$(CXX) $^ -o $@ $(LDFLAGS)
-	@echo "[Completed]  $(TARGET) successful — all symbols resolved."
+	@printf "\n$(INFO_COLOR)───────$(NO_COLOR) $(HIGHLIGHT)Linking$(NO_COLOR)\n"
+	@printf "  %-12s : %s\n" "Target" "$(TARGET)"
+	@printf "  %-12s : %s\n" "Objects" "$(words $(OBJECTS))"
+	@$(CXX) $^ -o $@ $(LDFLAGS) \
+		&& printf "  $(OK_COLOR)✓$(NO_COLOR) %-12s : %s\n" "Status" "Linked successfully" \
+		|| printf "  $(ERROR_COLOR)✗$(NO_COLOR) %-1s : %s\n" "Status" "Linking failed"
+	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n"
 
 $(DEP_DIR)/%.d: ;
 .PRECIOUS: $(DEP_DIR)/%.d
@@ -239,8 +262,16 @@ release: clean-banner all
 
 clean-banner:
 	@clear || cls
-	@echo "Building $(APP_NAME)"
-	@echo "OS: $(OS_NAME)   |   Host: $(HOST_ARCH)   |   TARGET arch: $(TARGET_ARCH)"
+ifeq ($(VERBOSE),1)
+	@printf "$(INFO_COLOR)─── Build: $(HIGHLIGHT)$(APP_NAME)$(NO_COLOR)\n"
+	@printf "  $(BOLD)> OS:$(NO_COLOR)           %s\n" "$(OS_NAME)"
+	@printf "  $(BOLD)> Host CPU:$(NO_COLOR)     %s\n" "$(HOST_ARCH)"
+	@printf "  $(BOLD)> Target Arch:$(NO_COLOR)  %s\n" "$(TARGET_ARCH)"
+	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n"
+else
+	@printf "Build $(APP_NAME)"
+	@printf "OS: $(OS_NAME)   |   Host: $(HOST_ARCH)   |   TARGET arch: $(TARGET_ARCH)"
+endif
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 8. Utilities
@@ -248,20 +279,24 @@ clean-banner:
 
 .PHONY: asm
 asm:
-	@echo "Generating assembly files..."
+	@printf "\n$(INFO_COLOR)───────$(NO_COLOR) $(HIGHLIGHT)Assembly$(NO_COLOR)\n"
+	@printf "  %-12s : %s\n" "Sources" "$(words $(SOURCES))"
 	@$(MKDIR) $(call FIXPATH,$(ASM_DIR))
 	@$(foreach src,$(SOURCES), \
 		$(CXX) -S -masm=intel -O2 $(INCLUDES) -o $(ASM_DIR)/$(notdir $(basename $(src))).s $(src); \
 	)
-	@echo "Done → $(ASM_DIR)/"
+	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-12s : %s\n" "Output" "$(ASM_DIR)"
+	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 .PHONY: disasm
 disasm: all
-	@echo "Disassembling $(TARGET_FULL_FULL)..."
+	@printf "\n$(INFO_COLOR)───────$(NO_COLOR) $(HIGHLIGHT)Disassembly$(NO_COLOR)\n"
+	@printf "  %-12s : %s\n" "Target" "$(TARGET)"
 	@$(MKDIR) $(call FIXPATH,$(ASM_DIR))
 	@$(OBJDUMP) -d -Mintel -C "$(call FIXPATH,$(BIN_DIR)/$(TARGET))" > "$(ASM_DIR)/$(APP_NAME)_disasm.txt"
 	@$(OBJDUMP) -S -wC "$(call FIXPATH,$(BIN_DIR)/$(TARGET))" > "$(ASM_DIR)/$(APP_NAME)_source.txt"
-	@echo "Done → $(ASM_DIR)/"
+	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Output:" "$(ASM_DIR)"
+	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Run TARGET_FULLs
@@ -269,14 +304,18 @@ disasm: all
 
 .PHONY: run run-debug
 run: release
-	@echo ""
-	@echo "→ Running: $(TARGET)"
+	@printf "\n$(INFO_COLOR)───────$(NO_COLOR) $(HIGHLIGHT)Run$(NO_COLOR)\n"
+	@printf "  %-12s : %s\n" "Target" "$(TARGET)"
+	@printf "  $(INFO_COLOR)→ Running...$(NO_COLOR)\n"
 	@$(BIN_DIR)/$(TARGET) || $(BIN_DIR)/$(TARGET)
+	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 run-debug: debug
-	@echo ""
-	@echo "→ Running DEBUG: $(TARGET)"
+	@printf "\n$(INFO_COLOR)───────$(NO_COLOR) $(HIGHLIGHT)Run Debug$(NO_COLOR)\n"
+	@printf "  %-12s : %s\n" "Target" "$(TARGET)"
+	@printf "  $(INFO_COLOR)→ Running DEBUG...$(NO_COLOR)\n"
 	@$(BIN_DIR)/$(TARGET) || $(BIN_DIR)/$(TARGET)
+	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Clean TARGET_FULLs
@@ -284,47 +323,54 @@ run-debug: debug
 
 .PHONY: clean full-clean
 clean:
-	@echo "Cleaning artifacts..."
+	@printf "\n$(INFO_COLOR)───────$(NO_COLOR) $(HIGHLIGHT)Clean$(NO_COLOR)\n"
+	@printf "  %-12s : %s\n" "Removing" "OBJ, DEP, ASM, Binary"
 	@$(RM) $(OBJ_DIR) $(DEP_DIR) $(ASM_DIR) "$(BIN_DIR)/$(TARGET)"
+	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Done" "$(BUILD_BASE)"
+	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 full-clean:
-	@echo "Removing entire build directory..."
+	@printf "\n$(INFO_COLOR)───────$(NO_COLOR) $(HIGHLIGHT)Full Clean$(NO_COLOR)\n"
+	@printf "  %-12s : %s\n" "Removing" "$(BUILD_BASE)"
 	@$(RM) "$(BUILD_BASE)"
+	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Done" "$(BUILD_BASE)"
+	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 9. Help & info
 # ──────────────────────────────────────────────────────────────────────────────
 
 .PHONY: help info
+
 help:
-	@echo "═══════════════════════════════════════════════════════════════"
-	@echo " $(APP_NAME) – Modern C++ Makefile"
-	@echo "═══════════════════════════════════════════════════════════════"
-	@echo "Common commands:"
-	@echo "  make               → release build"
-	@echo "  make debug         → debug build + sanitizers"
-	@echo "  make release       → optimized build"
-	@echo "  make run           → release + run"
-	@echo "  make asm           → generate .s files"
-	@echo "  make disasm        → disassemble binary"
-	@echo "  make clean         → remove objects & binary"
-	@echo "  make full-clean    → delete entire build/"
-	@echo ""
-	@echo "Examples:"
-	@echo "  make release ARCH=znver4"
-	@echo "  make debug CXX=clang++"
-	@echo "═══════════════════════════════════════════════════════════════"
+	@printf "\n$(INFO_COLOR)───────$(NO_COLOR) $(HIGHLIGHT)Help$(NO_COLOR)\n"
+	@printf "  $(INFO_COLOR)%s$(NO_COLOR)\n" "Common commands:"
+	@printf "    %-18s → %s\n" "make"               "release build"
+	@printf "    %-18s → %s\n" "make debug"         "debug build + sanitizers"
+	@printf "    %-18s → %s\n" "make release"       "optimized build"
+	@printf "    %-18s → %s\n" "make run"           "release + run"
+	@printf "    %-18s → %s\n" "make asm"           "generate .s files"
+	@printf "    %-18s → %s\n" "make disasm"        "disassemble binary"
+	@printf "    %-18s → %s\n" "make clean"         "remove objects & binary"
+	@printf "    %-18s → %s\n" "make full-clean"    "delete entire build/"
+	@printf "\n"
+	@printf "  $(INFO_COLOR)%s$(NO_COLOR)\n" "Examples:"
+	@printf "    make release ARCH=znver4\n"
+	@printf "    make debug   CXX=clang++\n"
+	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 
 info:
-	@echo "Project       : $(APP_NAME)"
-	@echo "Sources       : $(words $(SOURCES)) files"
-	@echo "TARGET        : $(BIN_DIR)/$(TARGET)"
-	@echo "Compiler      : $(CXX)"
-	@echo "Standard      : $(LANGUAGE)"
-	@echo "OS            : $(OS_NAME)"
-	@echo "Host arch     : $(HOST_ARCH)"
-	@echo "TARGET arch   : $(TARGET_ARCH)"
+	@printf "\n$(INFO_COLOR)───────$(NO_COLOR) $(HIGHLIGHT)Project Info$(NO_COLOR)\n"
+	@printf "  %-12s : %s\n" "Project"      "$(APP_NAME)"
+	@printf "  %-12s : %s files\n" "Sources"      "$(words $(SOURCES))"
+	@printf "  %-12s : %s\n" "Target"       "$(BIN_DIR)/$(TARGET)"
+	@printf "  %-12s : %s\n" "Compiler"     "$(CXX)"
+	@printf "  %-12s : %s\n" "Standard"     "$(LANGUAGE)"
+	@printf "  %-12s : %s\n" "OS"           "$(OS_NAME)"
+	@printf "  %-12s : %s\n" "Host arch"    "$(HOST_ARCH)"
+	@printf "  %-12s : %s\n" "Target arch"  "$(TARGET_ARCH)"
+	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 # ──────────────────────────────────────────────────────────────────────────────
 #                                      HINTS
