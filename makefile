@@ -270,7 +270,7 @@ ifeq ($(VERBOSE),1)
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n"
 else
 	@printf "Build $(APP_NAME)"
-	@printf "OS: $(OS_NAME)   |   Host: $(HOST_ARCH)   |   TARGET arch: $(TARGET_ARCH)"
+	@printf "OS: $(OS_NAME)   |   Host: $(HOST_ARCH)   |   TARGET arch: $(TARGET_ARCH)\n\n"
 endif
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -2,7 +2,7 @@
 
 [![Make](https://img.shields.io/badge/Build-Make-6D00CC?style=flat&logo=cmake&logoColor=white)](https://www.gnu.org/software/make/)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey?style=flat)
-[![C](https://img.shields.io/badge/Language-C-A8B9CC?style=flat&logo=c)](https://en.wikipedia.org/wiki/C_(programming_language))
+[![C](https://img.shields.io/badge/Language-C-A8B9CC?style=flat&logo=c)](<https://en.wikipedia.org/wiki/C_(programming_language)>)
 [![C++](https://img.shields.io/badge/Language-C%2B%2B-00599C?style=flat&logo=cplusplus&logoColor=white)](https://isocpp.org/)
 ![Status](https://img.shields.io/badge/Status-Experimental-blueviolet?style=flat)
 
@@ -18,7 +18,6 @@ Designed to be simple, readable, and easy to extend — ideal for game engines, 
 ## Features
 
 - Debug & Release configurations
-- Platform-aware linking (OpenGL, GLFW-ready, threads, etc.)
 - Architecture-specific optimization (`-march=native` by default)
 - Dependency tracking with `.d` files
 - Assembly generation (`make asm`) and binary disassembly (`make disasm`)
@@ -46,27 +45,27 @@ make full-clean
 
 # Main Commands
 
-| Command           | Description                                   | When to use                                |
-|-------------------|-----------------------------------------------|--------------------------------------------|
-| `make`            | Release build (default target)                | Everyday development                       |
-| `make release`    | Explicit Release build with optimizations     | Final/performance builds                   |
-| `make debug`      | Debug build + symbols + sanitizers            | Bug hunting, ASan/UBSan                    |
-| `make run`        | Release build + execute binary                | Quick testing                              |
-| `make run-debug`  | Debug build + execute binary                  | Debugging sessions                         |
-| `make asm`        | Generate Intel-syntax `.s` assembly files     | Inspecting compiler output                 |
-| `make disasm`     | Disassemble final binary (objdump)            | Optimization / reverse engineering         |
-| `make clean`      | Remove objects, deps, asm, binary             | Fresh start for current config             |
-| `make full-clean` | Delete entire `./build/` directory            | Changing compiler or major flags           |
-| `make help`       | Show help message                             | Quick reference                            |
-| `make info`       | Show project configuration summary            | Verify paths, compiler, sources count      |
+| Command           | Description                               | When to use                           |
+| ----------------- | ----------------------------------------- | ------------------------------------- |
+| `make`            | Release build (default target)            | Everyday development                  |
+| `make release`    | Explicit Release build with optimizations | Final/performance builds              |
+| `make debug`      | Debug build + symbols + sanitizers        | Bug hunting, ASan/UBSan               |
+| `make run`        | Release build + execute binary            | Quick testing                         |
+| `make run-debug`  | Debug build + execute binary              | Debugging sessions                    |
+| `make asm`        | Generate Intel-syntax `.s` assembly files | Inspecting compiler output            |
+| `make disasm`     | Disassemble final binary (objdump)        | Optimization / reverse engineering    |
+| `make clean`      | Remove objects, deps, asm, binary         | Fresh start for current config        |
+| `make full-clean` | Delete entire `./build/` directory        | Changing compiler or major flags      |
+| `make help`       | Show help message                         | Quick reference                       |
+| `make info`       | Show project configuration summary        | Verify paths, compiler, sources count |
 
 ## Parallel / Multi-Core Builds (Recommended for Speed)
 
-Your Makefile fully supports parallel compilation to use multiple CPU cores and dramatically reduce build times on modern machines.
+The **Makefile** fully supports parallel compilation to use multiple **CPU cores** and dramatically reduce build times on modern machines.
 
 ### How to Use It
 
-```Bash
+```bash
 # Use all available cores (recommended)
 make -j$(nproc) run     # Linux/WSL/macOS
 make -j8 run            # Windows or fixed number (adjust to your CPU)
@@ -170,11 +169,18 @@ MyProject/
 
 - **Linking errors** → Install missing dev packages (e.g., **libglfw3-dev** on **Ubuntu/WSL**)
 - **No rule to make target** → Verify source files exist in `src/` (or added folders)
-- **Sanitizers not working on Windows** → Disabled by design (partial support in ***MinGW***)
+- **Sanitizers not working on Windows** → Disabled by design (partial support in **_MinGW_**)
 - **Double slashes in paths** → Usually harmless; caused by empty variables in some shells
 - **Sources not being detected** → Add source directories manually; `recursive discovery is not fully implemented yet`
 - **Colors broken in CI** → Parallel mode auto-disables fancy output
 - **Too much output with `-j`** → Use `-jN` `-s` or redirect to log
+
+## 🐞 Known Issues / Limitations
+
+This project has been primarily developed and tested on **Windows**.
+
+Support for **macOS** and **Linux** is still experimental and may present unexpected behavior. </br>
+If you encounter any issues, platform-specific bugs, or inconsistencies, **your feedback is extremely valuable.**
 
 ## 🤝 Contributing
 
