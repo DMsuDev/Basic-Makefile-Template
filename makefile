@@ -221,9 +221,9 @@ endif
 	else \
 		if [ "$(VERBOSE)" = "1" ]; then \
 			printf "$(ERROR_COLOR)✗$(NO_COLOR)\n"; \
-			echo "$(ERROR_COLOR)Compilation failed for $<$(NO_COLOR)"; \
+			printf "  $(ERROR_COLOR)Compilation failed for $<$(NO_COLOR)\n"; \
 		else \
-			echo "[Error] On compilation $<"; \
+			printf "[Error] On compilation $<"; \
 		fi; \
 		cat compile.log; \
 		rm -f compile.log; \
