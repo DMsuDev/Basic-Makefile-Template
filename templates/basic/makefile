@@ -11,7 +11,7 @@
 # Main configuration – customize these variables
 # ──────────────────────────────────────────────────────────────────────────────
 
-APP_NAME    ?= ProjectName
+APP_NAME    ?= MyProject
 SRC_EXT     ?= cpp
 LANGUAGE    ?= c++23
 CXX         ?= g++
