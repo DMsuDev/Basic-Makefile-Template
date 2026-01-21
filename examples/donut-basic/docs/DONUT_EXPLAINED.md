@@ -2,7 +2,6 @@
 
 This document explains how the rotating ASCII donut (torus) demo works. It covers the geometric model, rotation, projection and depth buffering, luminance (shading), runtime optimizations implemented in `src/core/donut.cpp`, and tuning notes.
 
-
 Quick run (example):
 
 ```bash
@@ -10,7 +9,6 @@ Quick run (example):
 ```
 
 Arguments: `width` `height` `frames(0=infinite)` `fps` — adjust to taste.
-
 
 ## 1 - Torus parameterization
 
