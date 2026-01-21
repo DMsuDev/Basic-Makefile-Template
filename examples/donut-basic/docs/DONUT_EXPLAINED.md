@@ -1,12 +1,20 @@
 # Donut ASCII — Detailed Explanation
 
-This document explains the implementation details of the rotating ASCII donut (torus) demo included in this repository. It covers the mathematical model, projection, shading (luminance), depth buffering, and runtime optimizations used by the code in `src/core/donut.cpp`.
+This document explains how the rotating ASCII donut (torus) demo works. It covers the geometric model, rotation, projection and depth buffering, luminance (shading), runtime optimizations implemented in `src/core/donut.cpp`, and tuning notes.
 
----
 
-## 1 — Torus Parameterization
+Quick run (example):
 
-A torus (donut) can be parameterized by two angles, $\theta$ and $\phi$:
+```bash
+./build/app/$(ProjectName).exe 100 40 0 30
+```
+
+Arguments: `width` `height` `frames(0=infinite)` `fps` — adjust to taste.
+
+
+## 1 - Torus parameterization
+
+A torus can be parameterized by two angles, $\theta$ (around the main ring) and $\phi$ (around the tube):
 
 $$
 \begin{aligned}
@@ -16,93 +24,152 @@ Z(\theta,\phi) &= r\sin\phi
 \end{aligned}
 $$
 
-Where:
+In the code:
 
-- $R$ is the distance from the center of the tube to the center of the torus (`R2` in code).
-- $r$ is the tube radius (we use an implicit scaling via steps and projection constants).
+- `R2` represents the large radius (distance from torus center to tube center).
+- The tube radius `r` is represented implicitly through the sampling and projection constants.
 
-The demo uses a simplified projection and combines the parameters into scaled screen coordinates.
+The renderer samples $\theta$ and $\phi$ at fixed steps to produce a grid of surface points. Trigonometric values for each sample are precomputed to avoid repeated sin/cos calls in the inner loop.
 
-## 2 — Rotation
-
-Two rotation angles (named `A` and `B` in the code) rotate the torus in 3D before projection. Rotation matrices are applied implicitly by computing the rotated coordinates via trigonometric combinations of $\sin$/$\cos$ of `A` and `B` and the torus parameters.
-
-Rotation is applied to simulate the torus spinning in 3D space so the lighting and silhouette change over time.
-
-## 3 — Projection & Depth (Z-buffer)
-
-The demo approximates perspective by computing a depth factor $D$ as an inverse of an expression that depends on the rotated coordinates:
-
-$$
-D \approx \frac{1}{z + K}
-$$
-
-Where $K$ is a constant offset (`K2` in code) chosen to keep denominators positive and to control perceived scale. The projected screen coordinates are then:
-
-$$
-\begin{aligned}
-x &= \text{screen\_cx} + S_x \cdot D \cdot X' \\
-y &= \text{screen\_cy} + S_y \cdot D \cdot Y'
-\end{aligned}
-$$
-
-($X'$, $Y'$ are rotated/translated partial expressions; $S_x$, $S_y$ are scale factors set in the `Config`.)
-
-To correctly display surfaces in front of others we maintain a z-buffer (`zbuffer`) of size `width*height`. For each projected point we compare its $D$ (1/z) with the stored value: if $D` is larger, the pixel is closer and we update both the z-buffer and the output character.
-
-## 4 — Luminance / Shading
-
-The ASCII shading is chosen from a small palette of characters ordered by perceived brightness: `".,-~:;=!*#$@"`.
-
-A scalar luminance value $L$ is approximated using a combination of surface normal direction and a hard-coded light direction (implicitly in the formula). The code maps $L$ into an index into the luminance array and clamps it to avoid out-of-range access.
-
-Example (in code):
+Code example (parameterization):
 
 ```cpp
-float L = cPhi * cTheta * sinB - D * (sPhi * cosB + sTheta * cosA * sinB);
-int index = clamp(lround(8.0f * L), 0, lum_len - 1);
-char ch = luminance[index];
+// precomputed: cTheta, sTheta, cPhi, sPhi
+float h = cPhi + cfg.R2;       // h = R + r * cos(phi)
+float x3 = h * cTheta;         // X
+float y3 = h * sTheta;         // Y
+float z3 = sPhi;               // Z
 ```
 
-This is a cheap approximation but visually convincing for ASCII shading.
+In the code `h` is the radius from the torus center to the current tube point. Multiplying `h` by `cos(theta)` & `sin(theta)` gives the X/Y coordinates around the main ring; `sPhi` gives the tube's Z offset.
 
-## 5 — Optimizations Implemented
+## 2 - Rotation
 
-The demo includes several important optimizations to improve runtime and reduce console I/O:
+The torus is rotated in 3D using two angles named `A` and `B`. Instead of forming full rotation matrices, the code composes the rotation by combining sines and cosines of `A` and `B` with the parameterized coordinates. Updating `A` and `B` each frame produces the spinning animation.
 
-- **Trig precomputation:** compute `sin`/`cos` tables for the theta and phi sample grids once per run. This avoids expensive calls inside the inner loop.
-- **Z-buffer (depth buffer):** store `-infinity` as initial values and compare `D` (1/z). Using `-infinity` ensures any valid `D` will be larger and write to the buffer.
-- **Double-buffer diffing:** maintain a `prev_output` frame and compute minimal runs (horizontal segments) that changed, emitting only those runs as ANSI sequences. This reduces the number of characters written to the terminal and reduces flicker.
-- **Single I/O write per diff:** each frame we build a single `diff_out` string containing cursor moves and changed runs, then write it once with `std::cout << diff_out << std::flush;`.
-- **Stable FPS:** the code measures frame time with `std::chrono::steady_clock` and sleeps only for the remaining time to achieve a target FPS.
+Code example (rotation):
 
-## 6 — Code Structure & Responsibilities (SOLID-inspired)
+```cpp
+float sinA = std::sin(A), cosA = std::cos(A);
+float sinB = std::sin(B), cosB = std::cos(B);
 
-The implementation in `src/core/donut.cpp` was refactored into small functions, each having a single responsibility:
+// intermediate values used by the projection code:
+float t = sTheta * h * cosA - sPhi * sinA;
+// rotated X' and Y' are assembled below when computing screen x/y
+```
 
-- `precomputeTrig(...)` — build lookup tables for sin/cos of `theta` and `phi`.
-- `renderFrame(...)` — the pure computational part: iterate samples, compute projection, depth, and luminance; update `output` and `zbuffer` accordingly.
-- `buildDiffAndUpdatePrev(...)` — compare `output` and `prev_output`, produce ANSI-encoded minimal updates and update `prev_output`.
-- `run(...)` — orchestrates the loop: prepares buffers, calls helpers, manages timing, and handles cursor hide/show.
+Plain-English: `t` bundles parts of the rotated Y/Z contribution so final screen X/Y can be written compactly and the inner loop stays fast.
 
-This separation makes unit testing easier (you can test `precomputeTrig` and `buildDiffAndUpdatePrev` independently) and keeps the core algorithm isolated from terminal I/O.
+## 3 - Projection and depth buffering
 
-## 7 — Parameters & Tuning
+The demo approximates perspective by computing an inverse depth factor:
 
-- `width`, `height`: terminal dimensions; larger values increase visual fidelity but also computation.
-- `theta_step` / `phi_step`: sampling density around the torus. Smaller steps produce smoother geometry at higher CPU cost.
-- `scale_x` / `scale_y`: how large the torus appears on-screen.
-- `R2` and `K2`: geometry/depth constants — tweak to change proportions and perspective.
-- `fps`: frame rate target.
+$$
+D = \frac{1}{\text{denom}} \approx \frac{1}{z + K}
+$$
 
-Try different values from the command line: `./build/app/MyProject-x86_64.exe 100 40 200 30` (width 100, height 40, 200 frames, 30 FPS).
+Here `denom` is a linear expression built from rotated coordinates and the constant `K2` (used to shift/scale depth and avoid division-by-zero). The projected screen coordinates are computed as scaled products of this depth factor and the rotated X/Y expressions.
 
-## 8 — Terminal Compatibility
+To resolve occlusion the renderer maintains a z-buffer (`zbuffer`) with one float per screen cell. The code initializes the z-buffer to `-infinity`. For each projected sample the renderer computes `D` (an approximation of 1/z) and compares it to `zbuffer[index]`: if `D` is larger, that sample is closer and it overwrites both the z-buffer and the output character for that pixel.
 
-The demo uses ANSI escape sequences for cursor movement and hiding/showing cursor. On Unix terminals these work out-of-the-box. On Windows, enable ANSI processing (or run in a terminal that supports ANSI, e.g. Windows Terminal or recent cmd/powershell after enabling `ENABLE_VIRTUAL_TERMINAL_PROCESSING`). For automatic enabling on Windows, you can call the Win32 API to set console mode (not included to remain portable).
+Notes from the implementation:
+
+- The code skips degenerate projections where the computed denominator equals zero.
+- Larger `D` means closer to the camera because `D` is proportional to 1/z.
+
+Code example (projection & depth):
+
+```cpp
+float denom = (sTheta * h * sinA + sPhi * cosA + cfg.K2);
+if (denom == 0.0f) continue; // skip invalid projection
+float D = 1.0f / denom; // approximate 1/z for depth
+
+int x = static_cast<int>(width/2 + cfg.scale_x * D * (cTheta * h * cosB - t * sinB));
+int y = static_cast<int>(height/2 + cfg.scale_y * D * (cTheta * h * sinB + t * cosB));
+```
+
+Code example (depth test):
+
+```cpp
+int o = x + width * y;
+if (D > zbuffer[o]) {
+    zbuffer[o] = D;                       // keep nearer depth
+    output[o] = luminance[lum_index];     // write chosen ASCII char
+}
+```
+
+Plain: `D` scales projected coordinates to mimic perspective; the z-buffer keeps the largest `D` per pixel (nearest sample).
+
+## 4 - Luminance / shading
+
+Shading uses a small palette of ASCII characters ordered by brightness: `.,-~:;=!*#$@`.
+
+Luminance in the implementation is computed as a cheap dot-product-like scalar between an approximate surface normal and an implicit light direction. The code uses a compact expression combining sines/cosines of the sample angles and the rotation angles to produce a scalar `L`. That scalar is then scaled and converted to an index into the luminance string, with bounds clamping before indexing.
+
+Implementation details (conceptual):
+
+- Compute scalar luminance $L$ from surface orientation and light direction.
+- Map $L$ into an integer index, e.g. `int idx = static_cast<int>(8.0f * L);` and clamp to `[0, lum_len-1]`.
+- Use `luminance[idx]` to choose the ASCII character.
+
+The exact expression used in `src/core/donut.cpp` is a compact approximation chosen for speed; it is not a precise normal·light dot product but produces visually plausible shading for the ASCII rendering.
+
+Code example (luminance mapping):
+
+```cpp
+float L = /* compact expression combining sines/cosines and A/B */;
+int lum_index = static_cast<int>(8.0f * L);
+lum_index = std::clamp(lum_index, 0, lum_len - 1);
+char ch = luminance[lum_index];
+```
+
+Plain: scaling `L` by 8 (an empirical choice matching the luminance palette size and visual contrast) converts continuous brightness into discrete ASCII levels; clamping prevents invalid indices.
+
+## 5 - Optimizations implemented
+
+- Trig precomputation: `precomputeTrig(...)` builds `sin`/`cos` lookup tables for `\theta` and `\phi` samples to avoid repeated expensive calls.
+- Z-buffer: the depth buffer is filled with `-infinity` so any valid `D` will be greater and therefore overwrite it.
+- Minimal diff rendering: the renderer keeps a `prev_output` frame and computes minimal horizontal runs of changed characters. Each run is emitted as a cursor-move ANSI sequence followed by the changed characters.
+- Single I/O flush per frame: all ANSI cursor moves and changed runs are concatenated into one `diff_out` string and written once via `std::cout << diff_out << std::flush;` to reduce terminal I/O overhead and flicker.
+- Stable FPS: frame timing uses `std::chrono::steady_clock` and sleeps only for the remaining time to match the target `fps`.
+
+Code example (efficient terminal output):
+
+```cpp
+// move cursor to row/col and write run of changed characters
+diff_out += "\x1b[" + std::to_string(row + 1) + ";" + std::to_string(start + 1) + "H";
+diff_out.append(&output[row*width + start], run_len);
+```
+
+Plain: instead of redrawing the whole screen, the renderer writes only the changed horizontal runs, reducing I/O and flicker.
+
+## 6 - Code structure
+
+Key functions in `src/core/donut.cpp`:
+
+- `precomputeTrig(theta_step, phi_step, ...)` — builds sin/cos lookup tables. It computes counts with `ceil(2*PI/step)` so the sample grids cover the full 0..2π range.
+- `renderFrame(cfg, sinTheta, cosTheta, sinPhi, cosPhi, A, B, output, zbuffer)` — iterates sample points, computes projection, depth, luminance and updates `output`/`zbuffer`.
+- `buildDiffAndUpdatePrev(output, prev_output, width, height)` — builds a compact ANSI-encoded diff and updates `prev_output`.
+- `run(cfg)` — orchestrates initialization, the main loop, timing, and cursor hide/show sequences.
+
+This separation keeps the computational kernel isolated from terminal I/O and makes parts easier to unit-test.
+
+## 7 - Parameters and tuning
+
+- `width`, `height`: terminal size (characters). Higher values increase detail at higher CPU cost.
+- `theta_step`, `phi_step`: angular sampling resolution. Smaller steps produce smoother output but more computation.
+- `scale_x`, `scale_y`: screen scale factors controlling torus size.
+- `R2`, `K2`: geometry and projection constants; tweak to change shape and perspective.
+- `fps`: target frames per second.
+
+Try different runtime parameters to trade off quality and performance.
+
+## 8 - Terminal compatibility
+
+The demo uses ANSI escape sequences for cursor movement and cursor visibility. On Unix-like terminals these work by default. On Windows, enable ANSI (virtual terminal) processing or run inside a terminal that supports it (Windows Terminal, or recent cmd/PowerShell with `ENABLE_VIRTUAL_TERMINAL_PROCESSING` enabled). The code does not modify Windows console modes automatically to preserve portability.
 
 ---
 
-## Note on origin
+### NOTE
 
-This Donut demo and its supporting refactor were created with assistance from an AI. The goal was to demonstrate the Makefile-driven build and modular structure of the project.
+This Donut demo and the refactor were created with assistance from an AI. The goal was to provide a clear, modular example that compiles with the repository's Makefiles and demonstrates minimal but effective ASCII 3D rendering.
