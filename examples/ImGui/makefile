@@ -9,8 +9,11 @@
 # ==============================================================================
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 0. Primary Build Configuration
+# Primary Build Configuration
 # ──────────────────────────────────────────────────────────────────────────────
+
+# Default build type when running plain `make`
+.DEFAULT_GOAL := all
 
 # 0 = Silent Mode; 1 = Color & Details Mode
 ifneq ($(filter -j%,$(MAKEFLAGS)),)
@@ -19,11 +22,31 @@ else
     VERBOSE := 1
 endif
 
+ifeq ($(VERBOSE),1)
+	NO_COLOR     := \033[0m
+	BOLD         := \033[1m
+	OK_COLOR     := \033[32;01m
+	WARN_COLOR   := \033[33;01m
+	ERROR_COLOR  := \033[31;01m
+	INFO_COLOR   := \033[36;01m
+	TITLE_COLOR  := \033[35;01m
+	HIGHLIGHT    := \033[95;01m
+else
+	NO_COLOR     :=
+	BOLD         :=
+	OK_COLOR     :=
+	WARN_COLOR   :=
+	ERROR_COLOR  :=
+	INFO_COLOR   :=
+	TITLE_COLOR  :=
+	HIGHLIGHT    :=
+endif
+
 # ──────────────────────────────────────────────────────────────────────────────
-# 1. Main configuration – customize these variables
+# Main configuration – customize these variables
 # ──────────────────────────────────────────────────────────────────────────────
 
-# Application/library name (without extension)
+# Application name (without extension)
 APP_NAME ?= MyProject
 
 # Source file extension
@@ -35,51 +58,24 @@ LANGUAGE ?= c++23
 # Define compiler to use
 CXX := g++
 
-# Default build type when running plain `make`
-.DEFAULT_GOAL := run
-
 # Architecture to TARGET (-march=...). Use "native" to optimize for current machine
 # Examples: native, skylake, haswell, alderlake, znver4, armv8-a, 64, 32 ...
 ARCH ?= native
 
 # Show console window on Windows? (set to false for GUI-only apps)
-USE_CONSOLE ?= true
+USE_CONSOLE ?= false
 
 # Optimization levels
 OPT_RELEASE ?= -O3
-OPT_DEBUG   ?= -O0
+OPT_DEBUG   ?= -Og
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 1.5 Colors (ANSI escape codes) – used for pretty output
-# ──────────────────────────────────────────────────────────────────────────────
-
-ifeq ($(VERBOSE),1)
-    NO_COLOR     := \033[0m
-    BOLD         := \033[1m
-    OK_COLOR     := \033[32;01m
-    WARN_COLOR   := \033[33;01m
-    ERROR_COLOR  := \033[31;01m
-    INFO_COLOR   := \033[36;01m
-    TITLE_COLOR  := \033[35;01m
-    HIGHLIGHT    := \033[95;01m
-else
-    NO_COLOR     :=
-    BOLD         :=
-    OK_COLOR     :=
-    WARN_COLOR   :=
-    ERROR_COLOR  :=
-    INFO_COLOR   :=
-    TITLE_COLOR  :=
-    HIGHLIGHT    :=
-endif
-
-# ──────────────────────────────────────────────────────────────────────────────
-# 2. Paths – usually no need to change
+# Paths – usually no need to change
 # ──────────────────────────────────────────────────────────────────────────────
 
 # Can be a list separate by spaces " ": include/ src/ src/core imgui/
-SOURCE_DIRS  ?= src src/core
-INCLUDE_DIRS ?= include
+SOURCE_DIRS  ?= src include
+INCLUDE_DIRS ?= include/imgui include/imgui/backends
 
 BUILD_BASE  ?= ./build
 BIN_DIR     ?= $(BUILD_BASE)/app
@@ -87,51 +83,9 @@ OBJ_DIR     ?= $(BUILD_BASE)/obj
 DEP_DIR     ?= $(BUILD_BASE)/dep
 ASM_DIR     ?= $(BUILD_BASE)/asm
 
-# Find all source files recursively
-SOURCES      := $(foreach dir,$(SOURCE_DIRS),$(wildcard $(dir)/*.$(SRC_EXT)))
-OBJECTS      := $(patsubst %.$(SRC_EXT),$(OBJ_DIR)/%.o,$(SOURCES))
-
-DEPENDENCIES := $(OBJECTS:.o=.d)
-INCLUDES     := $(foreach dir,$(INCLUDE_DIRS),-I$(dir))
-
 # ──────────────────────────────────────────────────────────────────────────────
-# 3. Libraries & linker flags – main customization area
+# Compiler & flags
 # ──────────────────────────────────────────────────────────────────────────────
-
-# ── Library search paths (use -L) ──
-LDFLAGS := -L./lib/
-
-LIBS :=
-
-# === Platform-specific libraries ===
-ifeq ($(OS),Windows_NT)
-    # Windows / MinGW common
-    LIBS += -lgdi32 -lopengl32
-    # LIBS += -lglfw3dll                    # dynamic GLFW (most common)
-    # LIBS += -luser32 -lkernel32 -lwinmm   # useful libs (Only MinGW)
-endif
-
-ifeq ($(OS_NAME),Linux)
-    # Typical Linux dependencies
-    # threads (usually needed on Linux)
-    # LIBS += -lXrandr -lXinerama -lXcursor -lXi
-    LIBS += -lGL -ldl -lpthread 
-endif
-
-ifeq ($(OS_NAME),macOS)
-    # macOS frameworks (use -framework instead of -l)
-    LIBS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
-endif
-
-# ── Final linker command ingredients ──
-LDFLAGS += $(LIBS) $(CONSOLEFLAGS)
-
-# ──────────────────────────────────────────────────────────────────────────────
-# 4. Compiler & flags
-# ──────────────────────────────────────────────────────────────────────────────
-
-# Generate files that encode make rules for the .h dependencies
-DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
 
 # Set flags that control and shows the error of the compiler
 # If type -Werror the compiler when throw error message stop the compilation.
@@ -149,7 +103,7 @@ else
 endif
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 5. Platform detection & common settings
+# Platform detection & common settings
 # ──────────────────────────────────────────────────────────────────────────────
 
 ifeq ($(OS),Windows_NT)
@@ -192,11 +146,64 @@ TARGET_ARCH := $(if $(filter native,$(ARCH)),$(HOST_ARCH),$(ARCH))
 TARGET := $(APP_NAME)-$(TARGET_ARCH)$(if $(filter Windows,$(OS_NAME)),.exe,)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 6. Build rules
+# Libraries & linker flags – main customization area
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Library search paths (use -L) ──
+LDFLAGS := -L./lib/
+
+LIBS := -ld3d12 -ldxgi -ld3dcompiler
+
+CONSOLEFLAGS ?=
+SANITIZERS ?=
+
+# === Platform-specific libraries ===
+ifeq ($(OS),Windows_NT)
+    # Windows / MinGW common
+    LIBS += -luser32 -lkernel32 -lshell32 -ldwmapi
+endif
+
+ifeq ($(OS_NAME),Linux)
+    # Typical Linux dependencies
+    # threads (usually needed on Linux)
+    # LIBS += -lXrandr -lXinerama -lXcursor -lXi
+    LIBS += -lGL -ldl -lpthread 
+endif
+
+ifeq ($(OS_NAME),macOS)
+    # macOS frameworks (use -framework instead of -l)
+    LDFLAGS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
+endif
+
+# ── Final linker command ingredients ──
+LDFLAGS += $(LIBS) $(CONSOLEFLAGS)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Automatic source & object discovery
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Find all source files recursively
+define recurse
+$(wildcard $(1)/*.$(SRC_EXT)) \
+$(foreach d,$(wildcard $(1)/*), \
+  $(if $(wildcard $(d)/),$(call recurse,$(d))))
+endef
+
+SOURCES      := $(foreach dir,$(SOURCE_DIRS),$(call recurse,$(dir)))
+OBJECTS      := $(patsubst %.$(SRC_EXT),$(OBJ_DIR)/%.o,$(SOURCES))
+DEPENDENCIES := $(OBJECTS:.o=.d)
+
+INCLUDES     := $(addprefix -I,$(INCLUDE_DIRS))
+
+# Generate files that encode make rules for the .h dependencies
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Build rules
 # ──────────────────────────────────────────────────────────────────────────────
 
 .PHONY: all dirs
-all: dirs $(BIN_DIR)/$(TARGET)
+all: clean-banner dirs $(BIN_DIR)/$(TARGET)
 
 dirs:
 	@$(MKDIR) "$(call FIXPATH,$(BIN_DIR))"
@@ -219,9 +226,9 @@ endif
 	else \
 		if [ "$(VERBOSE)" = "1" ]; then \
 			printf "$(ERROR_COLOR)✗$(NO_COLOR)\n"; \
-			echo "$(ERROR_COLOR)Compilation failed for $<$(NO_COLOR)"; \
+			printf "  $(ERROR_COLOR)Compilation failed for $<$(NO_COLOR)\n"; \
 		else \
-			echo "[Error] On compilation $<"; \
+			printf "[Error] On compilation $<"; \
 		fi; \
 		cat compile.log; \
 		rm -f compile.log; \
@@ -233,8 +240,8 @@ $(BIN_DIR)/$(TARGET): $(OBJECTS)
 	@printf "  %-12s : %s\n" "Target" "$(TARGET)"
 	@printf "  %-12s : %s\n" "Objects" "$(words $(OBJECTS))"
 	@$(CXX) $^ -o $@ $(LDFLAGS) \
-		&& printf "  $(OK_COLOR)✓$(NO_COLOR) %-12s : %s\n" "Status" "Linked successfully" \
-		|| printf "  $(ERROR_COLOR)✗$(NO_COLOR) %-1s : %s\n" "Status" "Linking failed"
+		&& printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Status" "Linked successfully" \
+		|| printf "  $(ERROR_COLOR)✗$(NO_COLOR) %-10s : %s\n" "Status" "Linking failed"
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n"
 
 $(DEP_DIR)/%.d: ;
@@ -243,25 +250,12 @@ $(DEP_DIR)/%.d: ;
 -include $(DEPENDENCIES)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 7. Build variants
+# Build UI variants
 # ──────────────────────────────────────────────────────────────────────────────
 
-.PHONY: debug release clean-banner
-
-SANITIZERS :=
-ifneq ($(OS),Windows_NT)
-SANITIZERS := -fsanitize=address,undefined
-endif
-
-debug: CXXFLAGS += $(OPT_DEBUG) -ggdb3 -DDEBUG
-debug: LDFLAGS  += $(SANITIZERS)
-debug: clean-banner all
-
-release: CXXFLAGS += $(OPT_RELEASE) -DNDEBUG -march=$(ARCH)
-release: clean-banner all
-
+.PHONY: clean-banner
 clean-banner:
-	@clear || cls
+	@clear 2>/dev/null || cls
 ifeq ($(VERBOSE),1)
 	@printf "$(INFO_COLOR)─── Build: $(HIGHLIGHT)$(APP_NAME)$(NO_COLOR)\n"
 	@printf "  $(BOLD)> OS:$(NO_COLOR)           %s\n" "$(OS_NAME)"
@@ -274,7 +268,28 @@ else
 endif
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 8. Utilities
+# Build variants
+# ──────────────────────────────────────────────────────────────────────────────
+
+.PHONY: debug release 
+
+# Address and Undefined Behavior Sanitizers (only on non-Windows)
+SANITIZERS :=
+ifneq ($(OS),Windows_NT)
+	SANITIZERS := -fsanitize=address,undefined
+endif
+
+# Debug build: add debug flags and link with sanitizers, then build
+debug: CXXFLAGS += $(OPT_DEBUG) -ggdb3 -DDEBUG
+debug: LDFLAGS  += $(SANITIZERS)
+debug: all
+
+# Release build: add optimization flags and build
+release: CXXFLAGS += $(OPT_RELEASE) -DNDEBUG -march=$(ARCH)
+release: all
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Assembly & Disassembly
 # ──────────────────────────────────────────────────────────────────────────────
 
 .PHONY: asm
@@ -299,7 +314,7 @@ disasm: all
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Run TARGET_FULLs
+# Run Rules
 # ──────────────────────────────────────────────────────────────────────────────
 
 .PHONY: run run-debug
@@ -307,18 +322,18 @@ run: release
 	@printf "\n$(INFO_COLOR)───────$(NO_COLOR) $(HIGHLIGHT)Run$(NO_COLOR)\n"
 	@printf "  %-12s : %s\n" "Target" "$(TARGET)"
 	@printf "  $(INFO_COLOR)→ Running...$(NO_COLOR)\n"
-	@$(BIN_DIR)/$(TARGET) || $(BIN_DIR)/$(TARGET)
+	@$(BIN_DIR)/$(TARGET)
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 run-debug: debug
 	@printf "\n$(INFO_COLOR)───────$(NO_COLOR) $(HIGHLIGHT)Run Debug$(NO_COLOR)\n"
 	@printf "  %-12s : %s\n" "Target" "$(TARGET)"
 	@printf "  $(INFO_COLOR)→ Running DEBUG...$(NO_COLOR)\n"
-	@$(BIN_DIR)/$(TARGET) || $(BIN_DIR)/$(TARGET)
+	@$(BIN_DIR)/$(TARGET)
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Clean TARGET_FULLs
+# Clean Rules
 # ──────────────────────────────────────────────────────────────────────────────
 
 .PHONY: clean full-clean
@@ -337,7 +352,7 @@ full-clean:
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 9. Help & info
+# Help & Info
 # ──────────────────────────────────────────────────────────────────────────────
 
 .PHONY: help info
