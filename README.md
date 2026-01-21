@@ -146,7 +146,7 @@ MyProject/
 ### 🪟 Windows
 
 - MSYS2 (recommended): **UCRT64** or **MINGW64**
-- C/C++ Compilers: `gcc`/`g++` (MinGW‑w64) or `clang`/`clang++`
+- Compilers: `g++` (MinGW‑w64) or `clang++`
 
 ### 🐧 Linux / WSL
 
@@ -163,19 +163,18 @@ MyProject/
 ## ⚠️ Troubleshooting
 
 - **Linking errors on Linux** → Install missing dev packages (e.g., **libglfw3-dev** on **Ubuntu/WSL**)
+- **`make` not found on Windows** → Use `mingw32-make` (included with **MinGW-w64**).
 - **No rule to make target** → Verify source files exist in `src/` (or added folders)
 - **Sanitizers not working on Windows** → Disabled by design (partial support in **_MinGW_**)
 - **Double slashes in paths** → Usually harmless; caused by empty variables in some shells
 - **Colors broken in CI** → Parallel mode auto-disables fancy output
 - **Too much output with `-j`** → Use `-jN` `-s` or redirect to log
 
-## 🐞 Known Issues / Limitations
+This project has been primarily developed and tested on **Windows** and **Linux/WSL**.
 
-This project has been primarily developed and tested on **Windows**.
+Support for **macOS** is still experimental and may present unexpected behavior.
 
-Support for **macOS** and **Linux** is still experimental and may present unexpected behavior.
-
-If you encounter any issues, platform-specific bugs, or inconsistencies, **your feedback is extremely valuable.**
+If you encounter any issues, platform-specific bugs, or inconsistencies, **your feedback is extremely valuable.** 🙏
 
 ## 🤝 Contributing
 
