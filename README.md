@@ -114,8 +114,6 @@ ifeq ($(OS_NAME),macOS)
 endif
 ```
 
-## 4. Hide console on Windows (GUI apps)
-
 ## 🗂️ Recommended Project Structure
 
 ```txt
