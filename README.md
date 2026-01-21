@@ -26,25 +26,6 @@ Designed to be simple, readable, and easy to extend — ideal for game engines, 
 - Optional console hiding on Windows (`USE_CONSOLE=false`)
 - Multi-core parallel builds support with clean handling
 
-## Quick Start
-
-```bash
-# Build and run in Release mode (default)
-make run
-
-# Build in Debug mode
-make debug
-
-# Debug build + run (recommended for debugging)
-make run-debug
-
-# Clean current build artifacts
-make clean
-
-# Remove entire build folder
-make full-clean
-```
-
 # Main Commands
 
 | Command           | Description                               | When to use                           |
@@ -135,10 +116,6 @@ endif
 
 ## 4. Hide console on Windows (GUI apps)
 
-```makefile
-USE_CONSOLE ?= false
-```
-
 ## 🗂️ Recommended Project Structure
 
 ```txt
@@ -181,7 +158,8 @@ MyProject/
 
 This project has been primarily developed and tested on **Windows**.
 
-Support for **macOS** and **Linux** is still experimental and may present unexpected behavior. </br>
+Support for **macOS** and **Linux** is still experimental and may present unexpected behavior.
+
 If you encounter any issues, platform-specific bugs, or inconsistencies, **your feedback is extremely valuable.**
 
 ## 🤝 Contributing
