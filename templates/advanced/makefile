@@ -109,7 +109,7 @@ endif
 ifeq ($(OS),Windows_NT)
     OS_NAME     := Windows
     ifeq ($(USE_CONSOLE),false)
-        CONSOLEFLAGS := -mwindows -luser32
+        CONSOLEFLAGS := -mwindows
     endif
 
     # Choose command style depending on shell (PowerShell vs cmd)
@@ -157,7 +157,7 @@ LIBS :=
 # === Platform-specific libraries ===
 ifeq ($(OS),Windows_NT)
     # Windows / MinGW common
-    LIBS += -luser32 -lkernel32 -lshell32 -ldwmapi
+    LIBS += -lkernel32 -luser32 -lgdi32 -lshell32 -ldwmapi
 endif
 
 ifeq ($(OS_NAME),Linux)

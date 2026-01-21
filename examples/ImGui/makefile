@@ -63,7 +63,7 @@ CXX := g++
 ARCH ?= native
 
 # Show console window on Windows? (set to false for GUI-only apps)
-USE_CONSOLE ?= false
+USE_CONSOLE ?= true
 
 # Optimization levels
 OPT_RELEASE ?= -O3
@@ -109,7 +109,7 @@ endif
 ifeq ($(OS),Windows_NT)
     OS_NAME     := Windows
     ifeq ($(USE_CONSOLE),false)
-        CONSOLEFLAGS := -mwindows -luser32
+        CONSOLEFLAGS := -mwindows
     endif
 
     # Choose command style depending on shell (PowerShell vs cmd)
@@ -154,13 +154,10 @@ LDFLAGS := -L./lib/
 
 LIBS := -ld3d12 -ldxgi -ld3dcompiler
 
-CONSOLEFLAGS ?=
-SANITIZERS ?=
-
 # === Platform-specific libraries ===
 ifeq ($(OS),Windows_NT)
     # Windows / MinGW common
-    LIBS += -luser32 -lkernel32 -lshell32 -ldwmapi
+    LIBS += -lkernel32 -luser32 -lgdi32 -lshell32 -ldwmapi
 endif
 
 ifeq ($(OS_NAME),Linux)
@@ -203,7 +200,13 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
 # ──────────────────────────────────────────────────────────────────────────────
 
 .PHONY: all dirs
+ifeq ($(words $(SOURCES)),0)
+all: clean-banner
+	@printf "\n$(WARN_COLOR)No source files found. Nothing to build.$(NO_COLOR)\n"
+	@exit 0
+else
 all: clean-banner dirs $(BIN_DIR)/$(TARGET)
+endif
 
 dirs:
 	@$(MKDIR) "$(call FIXPATH,$(BIN_DIR))"
