@@ -36,7 +36,7 @@ LANGUAGE ?= c++23
 CXX := g++
 
 # Default build type when running plain `make`
-.DEFAULT_GOAL := run
+.DEFAULT_GOAL := all
 
 # Architecture to TARGET (-march=...). Use "native" to optimize for current machine
 # Examples: native, skylake, haswell, alderlake, znver4, armv8-a, 64, 32 ...
@@ -47,30 +47,30 @@ USE_CONSOLE ?= true
 
 # Optimization levels
 OPT_RELEASE ?= -O3
-OPT_DEBUG   ?= -O0
+OPT_DEBUG   ?= -Og
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 1.5 Colors (ANSI escape codes) – used for pretty output
 # ──────────────────────────────────────────────────────────────────────────────
 
 ifeq ($(VERBOSE),1)
-    NO_COLOR     := \033[0m
-    BOLD         := \033[1m
-    OK_COLOR     := \033[32;01m
-    WARN_COLOR   := \033[33;01m
-    ERROR_COLOR  := \033[31;01m
-    INFO_COLOR   := \033[36;01m
-    TITLE_COLOR  := \033[35;01m
-    HIGHLIGHT    := \033[95;01m
+	NO_COLOR     := \033[0m
+	BOLD         := \033[1m
+	OK_COLOR     := \033[32;01m
+	WARN_COLOR   := \033[33;01m
+	ERROR_COLOR  := \033[31;01m
+	INFO_COLOR   := \033[36;01m
+	TITLE_COLOR  := \033[35;01m
+	HIGHLIGHT    := \033[95;01m
 else
-    NO_COLOR     :=
-    BOLD         :=
-    OK_COLOR     :=
-    WARN_COLOR   :=
-    ERROR_COLOR  :=
-    INFO_COLOR   :=
-    TITLE_COLOR  :=
-    HIGHLIGHT    :=
+	NO_COLOR     :=
+	BOLD         :=
+	OK_COLOR     :=
+	WARN_COLOR   :=
+	ERROR_COLOR  :=
+	INFO_COLOR   :=
+	TITLE_COLOR  :=
+	HIGHLIGHT    :=
 endif
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -102,11 +102,13 @@ INCLUDES     := $(foreach dir,$(INCLUDE_DIRS),-I$(dir))
 LDFLAGS := -L./lib/
 
 LIBS :=
+CONSOLEFLAGS ?=
+SANITIZERS ?=
 
 # === Platform-specific libraries ===
 ifeq ($(OS),Windows_NT)
     # Windows / MinGW common
-    LIBS += -lgdi32 -lopengl32
+	LIBS += -lgdi32 -lopengl32
     # LIBS += -lglfw3dll                    # dynamic GLFW (most common)
     # LIBS += -luser32 -lkernel32 -lwinmm   # useful libs (Only MinGW)
 endif
@@ -196,7 +198,7 @@ TARGET := $(APP_NAME)-$(TARGET_ARCH)$(if $(filter Windows,$(OS_NAME)),.exe,)
 # ──────────────────────────────────────────────────────────────────────────────
 
 .PHONY: all dirs
-all: dirs $(BIN_DIR)/$(TARGET)
+all: clean-banner dirs $(BIN_DIR)/$(TARGET)
 
 dirs:
 	@$(MKDIR) "$(call FIXPATH,$(BIN_DIR))"
@@ -233,8 +235,8 @@ $(BIN_DIR)/$(TARGET): $(OBJECTS)
 	@printf "  %-12s : %s\n" "Target" "$(TARGET)"
 	@printf "  %-12s : %s\n" "Objects" "$(words $(OBJECTS))"
 	@$(CXX) $^ -o $@ $(LDFLAGS) \
-		&& printf "  $(OK_COLOR)✓$(NO_COLOR) %-12s : %s\n" "Status" "Linked successfully" \
-		|| printf "  $(ERROR_COLOR)✗$(NO_COLOR) %-1s : %s\n" "Status" "Linking failed"
+		&& printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Status" "Linked successfully" \
+		|| printf "  $(ERROR_COLOR)✗$(NO_COLOR) %-10s : %s\n" "Status" "Linking failed"
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n"
 
 $(DEP_DIR)/%.d: ;
@@ -307,14 +309,14 @@ run: release
 	@printf "\n$(INFO_COLOR)───────$(NO_COLOR) $(HIGHLIGHT)Run$(NO_COLOR)\n"
 	@printf "  %-12s : %s\n" "Target" "$(TARGET)"
 	@printf "  $(INFO_COLOR)→ Running...$(NO_COLOR)\n"
-	@$(BIN_DIR)/$(TARGET) || $(BIN_DIR)/$(TARGET)
+	@$(BIN_DIR)/$(TARGET)
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 run-debug: debug
 	@printf "\n$(INFO_COLOR)───────$(NO_COLOR) $(HIGHLIGHT)Run Debug$(NO_COLOR)\n"
 	@printf "  %-12s : %s\n" "Target" "$(TARGET)"
 	@printf "  $(INFO_COLOR)→ Running DEBUG...$(NO_COLOR)\n"
-	@$(BIN_DIR)/$(TARGET) || $(BIN_DIR)/$(TARGET)
+	@$(BIN_DIR)/$(TARGET)
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 # ──────────────────────────────────────────────────────────────────────────────
