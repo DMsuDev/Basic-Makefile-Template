@@ -21,7 +21,7 @@ CXX := g++
 # ──────────────────────────────────────────────────────────────────────────────
 
 # Can be a list separate by spaces " ": include/ src/ src/core imgui/
-SOURCE_DIRS   ?= src src/core
+SOURCE_DIRS   ?= src
 INCLUDE_DIRS  ?= include
 
 BUILD_BASE    ?= build
@@ -53,11 +53,14 @@ endif
 # Automatic source & object discovery
 # ──────────────────────────────────────────────────────────────────────────────
 
-# OPTIONAL: recursive with find
-# SOURCES := $(shell find $(SOURCE_DIRS) -name '*.$(SRC_EXT)')
-
 # Find all source files recursively
-SOURCES      := $(foreach dir,$(SOURCE_DIRS),$(wildcard $(dir)/*.$(SRC_EXT)))
+define recurse
+$(wildcard $(1)/*.$(SRC_EXT)) \
+$(foreach d,$(wildcard $(1)/*), \
+  $(if $(wildcard $(d)/),$(call recurse,$(d))))
+endef
+
+SOURCES      := $(foreach dir,$(SOURCE_DIRS),$(call recurse,$(dir)))
 OBJECTS      := $(patsubst %.$(SRC_EXT),$(OBJ_DIR)/%.o,$(SOURCES))
 DEPENDENCIES := $(OBJECTS:.o=.d)
 
