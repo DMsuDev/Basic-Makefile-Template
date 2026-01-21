@@ -81,9 +81,20 @@ namespace donut
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
                     int o = x + width * y;
-                    // approximate luminance based on surface orientation and light direction
-                    float L = cPhi * cTheta * sinB - D * (sPhi * cosB + sTheta * cosA * sinB);
-                    int lum_index = static_cast<int>(std::lround(std::clamp(8.0f * L, 0.0f, static_cast<float>(lum_len - 1))));
+                    
+                    // Old luminance calculation
+                    // float L = cPhi * cTheta * sinB - D * (sPhi * cosB + sTheta * cosA * sinB);
+                    // int lum_index = static_cast<int>(std::lround(std::clamp(8.0f * L, 0.0f, static_cast<float>(lum_len - 1))));
+
+                    // approximate luminance using the same expression as the C example
+                    // (variables: j=phi, i=theta => sPhi,cPhi,sTheta,cTheta)
+                    
+                    float L = (sPhi * sinA - sTheta * cPhi * cosA) * cosB
+                              - sTheta * cPhi * sinA
+                              - sPhi * cosA
+                              - cTheta * cPhi * sinB;
+                    int lum_index = static_cast<int>(8.0f * L);
+                    lum_index = std::clamp(lum_index, 0, lum_len - 1);
                     if (D > zbuffer[o])
                     {
                         zbuffer[o] = D;
