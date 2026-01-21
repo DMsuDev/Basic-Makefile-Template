@@ -65,9 +65,8 @@
 #include <d3dcompiler.h>
 #ifdef _MSC_VER
 #pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
-#pragma comment(lib, "dxgi")        // Link DXGI for CreateDXGIFactory1
-#pragma comment(lib, "d3d12")       // Link D3D12 (recommended)
 #endif
+
 // Clang/GCC warnings with -Weverything
 #if defined(__clang__)
 #pragma clang diagnostic ignored "-Wold-style-cast"         // warning: use of old-style cast                            // yes, they are more terse.
