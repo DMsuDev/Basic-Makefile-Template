@@ -3,6 +3,7 @@
 **/app/
 **/obj/
 **/bin/
+**/others/
 
 # Object files
 *.o
