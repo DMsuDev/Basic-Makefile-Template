@@ -17,7 +17,7 @@ Designed to be simple, readable, and easy to extend — ideal for game engines, 
 
 ![Demo](.github/readme/demo.gif)
 
-## Features
+## ⭐ Features
 
 - Debug & Release configurations
 - Architecture-specific optimization (`-march=native` by default)
@@ -74,7 +74,7 @@ make -j$(nproc) -s > build.log 2>&1
 
 ## Customization
 
-### 1. Basic project settings
+### Basic project settings
 
 ```makefile
 APP_NAME     ?= MyGame                  # Your project name
@@ -84,7 +84,7 @@ LANGUAGE     ?= c++23                   # c++20, c++26, gnu++23...
 USE_CONSOLE  ?= true                    # Set to false for GUI apps on Windows
 ```
 
-## 1. Compiler & architecture
+### Compiler & architecture
 
 ```bash
 # Use Clang instead of GCC
@@ -96,7 +96,7 @@ make release ARCH=skylake         # Intel 6th–9th gen
 make release ARCH=armv8-a         # ARM (requires cross-compiler)
 ```
 
-## 3. Adding libraries (example: GLFW + OpenGL)
+### Adding libraries (example: GLFW + OpenGL)
 
 Uncomment/add in the libraries section:
 
