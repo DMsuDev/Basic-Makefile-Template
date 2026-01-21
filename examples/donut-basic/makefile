@@ -11,10 +11,11 @@
 # Main configuration – customize these variables
 # ──────────────────────────────────────────────────────────────────────────────
 
-APP_NAME ?= ProjectName
-SRC_EXT ?= cpp
-LANGUAGE ?= c++23
-CXX := g++
+APP_NAME    ?= ProjectName
+SRC_EXT     ?= cpp
+LANGUAGE    ?= c++23
+CXX         ?= g++
+USE_CONSOLE ?= true
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Directories & Paths
@@ -24,10 +25,10 @@ CXX := g++
 SOURCE_DIRS   ?= src
 INCLUDE_DIRS  ?= include
 
-BUILD_BASE    ?= build
-BIN_DIR       ?= $(BUILD_BASE)/bin
-OBJ_DIR       ?= $(BUILD_BASE)/obj
-DEP_DIR       ?= $(BUILD_BASE)/dep
+BUILD_BASE    := build
+BIN_DIR       := $(BUILD_BASE)/bin
+OBJ_DIR       := $(BUILD_BASE)/obj
+DEP_DIR       := $(BUILD_BASE)/dep
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Compiler & Linker flags (base)
@@ -43,7 +44,6 @@ CXXFLAGS      := $(CXXFLAGS_BASE) $(ERRORFLAGS)
 LDFLAGS       := 
 
 # Show console window on Windows? (set to false for GUI-only apps) (Windows)
-USE_CONSOLE ?= true
 ifeq ($(USE_CONSOLE),false)
     LDFLAGS += -mwindows
     # LDFLAGS += -luser32 -lgdi32

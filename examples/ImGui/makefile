@@ -47,16 +47,15 @@ endif
 # ──────────────────────────────────────────────────────────────────────────────
 
 # Application name (without extension)
-APP_NAME ?= MyProject
+APP_NAME ?= ImGuiExample
 
 # Source file extension
-SRC_EXT ?= cpp
+SRC_EXT  ?= cpp
 
 # C/C++ standard to use
 LANGUAGE ?= c++23
-
 # Define compiler to use
-CXX := g++
+CXX      ?= g++
 
 # Architecture to TARGET (-march=...). Use "native" to optimize for current machine
 # Examples: native, skylake, haswell, alderlake, znver4, armv8-a, 64, 32 ...
@@ -77,11 +76,11 @@ OPT_DEBUG   ?= -Og
 SOURCE_DIRS  ?= src include
 INCLUDE_DIRS ?= include/imgui include/imgui/backends
 
-BUILD_BASE  ?= ./build
-BIN_DIR     ?= $(BUILD_BASE)/app
-OBJ_DIR     ?= $(BUILD_BASE)/obj
-DEP_DIR     ?= $(BUILD_BASE)/dep
-ASM_DIR     ?= $(BUILD_BASE)/asm
+BUILD_BASE   := ./build
+BIN_DIR      := $(BUILD_BASE)/app
+OBJ_DIR      := $(BUILD_BASE)/obj
+DEP_DIR      := $(BUILD_BASE)/dep
+ASM_DIR      := $(BUILD_BASE)/asm
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Compiler & flags
@@ -150,9 +149,10 @@ TARGET := $(APP_NAME)-$(TARGET_ARCH)$(if $(filter Windows,$(OS_NAME)),.exe,)
 # ──────────────────────────────────────────────────────────────────────────────
 
 # ── Library search paths (use -L) ──
-LDFLAGS := -L./lib/
+LDFLAGS ?= -L./lib/
 
-LIBS := -ld3d12 -ldxgi -ld3dcompiler
+# ── Libraries to link against (use -l) ──
+LIBS ?= -ld3d12 -ldxgi -ld3dcompiler
 
 # === Platform-specific libraries ===
 ifeq ($(OS),Windows_NT)
@@ -266,7 +266,7 @@ ifeq ($(VERBOSE),1)
 	@printf "  $(BOLD)> Target Arch:$(NO_COLOR)  %s\n" "$(TARGET_ARCH)"
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n"
 else
-	@printf "Build $(APP_NAME)"
+	@printf "Build $(APP_NAME)\n"
 	@printf "OS: $(OS_NAME)   |   Host: $(HOST_ARCH)   |   TARGET arch: $(TARGET_ARCH)\n\n"
 endif
 
