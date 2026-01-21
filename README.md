@@ -2,7 +2,7 @@
 
 [![Make](https://img.shields.io/badge/Build-Make-6D00CC?style=flat&logo=cmake&logoColor=white)](https://www.gnu.org/software/make/)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey?style=flat)
-[![C](https://img.shields.io/badge/Language-C-A8B9CC?style=flat&logo=c)](<https://en.wikipedia.org/wiki/C_(programming_language)>)
+[![C](https://img.shields.io/badge/Language-C-A8B9CC?style=flat&logo=c)](https://en.wikipedia.org/wiki/C_(programming_language))
 [![C++](https://img.shields.io/badge/Language-C%2B%2B-00599C?style=flat&logo=cplusplus&logoColor=white)](https://isocpp.org/)
 ![Status](https://img.shields.io/badge/Status-Stable-success?style=flat)
 
@@ -52,7 +52,7 @@ The **Makefile** fully supports parallel compilation to use multiple **CPU cores
 make -j$(nproc) run     # Linux/WSL/macOS
 make -j8 run            # Windows or fixed number (adjust to your CPU)
 
-# Example: build with 8 cores (rule `all` by defualt)
+# Example: build with 8 cores (rule `all` by default)
 make -j8
 
 # Or with run
