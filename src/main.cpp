@@ -53,6 +53,30 @@ int main(int argc, char** argv)
 	using clock = std::chrono::steady_clock;
 	const std::chrono::duration<double> target_frame_time(1.0 / cfg.fps);
 
+	// Precompute trig tables for theta/phi to reduce cost in inner loop
+	const int theta_count = static_cast<int>(std::ceil(2.0f * PI / cfg.theta_step));
+	const int phi_count = static_cast<int>(std::ceil(2.0f * PI / cfg.phi_step));
+	std::vector<float> sinTheta(theta_count), cosTheta(theta_count);
+	std::vector<float> sinPhi(phi_count), cosPhi(phi_count);
+	for (int i = 0; i < theta_count; ++i)
+	{
+		float t = i * cfg.theta_step;
+		sinTheta[i] = std::sin(t);
+		cosTheta[i] = std::cos(t);
+	}
+	for (int j = 0; j < phi_count; ++j)
+	{
+		float p = j * cfg.phi_step;
+		sinPhi[j] = std::sin(p);
+		cosPhi[j] = std::cos(p);
+	}
+
+	// previous frame buffer for double-buffer diff
+	std::vector<char> prev_output(screen_size, ' ');
+
+	// clear screen and hide cursor
+	std::cout << "\x1b[2J\x1b[?25l";
+
 	int frame = 0;
 	while (cfg.frames == 0 || frame < cfg.frames)
 	{
@@ -61,29 +85,32 @@ int main(int argc, char** argv)
 		std::fill(output.begin(), output.end(), ' ');
 		std::fill(zbuffer.begin(), zbuffer.end(), -std::numeric_limits<float>::infinity());
 
-		for (float theta = 0.0f; theta < 2.0f * PI; theta += cfg.theta_step)
-		{
-			for (float phi = 0.0f; phi < 2.0f * PI; phi += cfg.phi_step)
-			{
-				float sinTheta = std::sin(theta), cosTheta = std::cos(theta);
-				float sinPhi = std::sin(phi), cosPhi = std::cos(phi);
-				float sinA = std::sin(A), cosA = std::cos(A);
-				float sinB = std::sin(B), cosB = std::cos(B);
+		float sinA = std::sin(A), cosA = std::cos(A);
+		float sinB = std::sin(B), cosB = std::cos(B);
 
-				float h = cosPhi + cfg.R2; // distance from center of torus
-				float denom = (sinTheta * h * sinA + sinPhi * cosA + cfg.K2);
+		for (int ti = 0; ti < theta_count; ++ti)
+		{
+			float sTheta = sinTheta[ti];
+			float cTheta = cosTheta[ti];
+			for (int pj = 0; pj < phi_count; ++pj)
+			{
+				float sPhi = sinPhi[pj];
+				float cPhi = cosPhi[pj];
+
+				float h = cPhi + cfg.R2; // distance from center of torus
+				float denom = (sTheta * h * sinA + sPhi * cosA + cfg.K2);
 				if (denom == 0.0f) continue;
 				float D = 1.0f / denom;
 
-				float t = sinTheta * h * cosA - sinPhi * sinA;
+				float t = sTheta * h * cosA - sPhi * sinA;
 
-				int x = static_cast<int>(width/2 + cfg.scale_x * D * (cosTheta * h * cosB - t * sinB));
-				int y = static_cast<int>(height/2 + cfg.scale_y * D * (cosTheta * h * sinB + t * cosB));
+				int x = static_cast<int>(width/2 + cfg.scale_x * D * (cTheta * h * cosB - t * sinB));
+				int y = static_cast<int>(height/2 + cfg.scale_y * D * (cTheta * h * sinB + t * cosB));
 
 				if (y >= 0 && y < height && x >= 0 && x < width)
 				{
 					int o = x + width * y;
-					float L = cosPhi * cosTheta * sinB - D * (sinPhi * cosB + sinTheta * cosA * sinB);
+					float L = cPhi * cTheta * sinB - D * (sPhi * cosB + sTheta * cosA * sinB);
 					int lum_index = static_cast<int>(std::lround(std::clamp(8.0f * L, 0.0f, static_cast<float>(lum_len - 1))));
 					if (D > zbuffer[o])
 					{
@@ -94,17 +121,34 @@ int main(int argc, char** argv)
 			}
 		}
 
-		// build single string per frame to reduce I/O calls
-		std::string frame_out;
-		frame_out.reserve(screen_size + height);
-		for (int i = 0; i < screen_size; ++i)
+		// compute diff against prev_output and build minimal update string
+		std::string diff_out;
+		diff_out.reserve(512);
+		for (int row = 0; row < height; ++row)
 		{
-			frame_out.push_back(output[i]);
-			if ((i + 1) % width == 0) frame_out.push_back('\n');
+			int col = 0;
+			while (col < width)
+			{
+				int idx = row * width + col;
+				if (output[idx] == prev_output[idx])
+				{
+					++col;
+					continue;
+				}
+				// start run
+				int start = col;
+				while (col < width && output[row*width + col] != prev_output[row*width + col]) ++col;
+				int run_len = col - start;
+				// move cursor (1-based)
+				diff_out += "\x1b[" + std::to_string(row + 1) + ";" + std::to_string(start + 1) + "H";
+				diff_out.append(&output[row*width + start], run_len);
+				// update prev_output for that run
+				for (int k = 0; k < run_len; ++k) prev_output[row*width + start + k] = output[row*width + start + k];
+			}
 		}
 
-		// print once
-		std::cout << "\x1b[H" << frame_out << std::flush;
+		// write diffs in one I/O call
+		if (!diff_out.empty()) std::cout << diff_out << std::flush;
 
 		A += 0.08f;
 		B += 0.03f;
@@ -118,6 +162,9 @@ int main(int argc, char** argv)
 
 		++frame;
 	}
+
+	// show cursor again
+	std::cout << "\x1b[?25h";
 
 	return 0;
 }
