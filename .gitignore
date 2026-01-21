@@ -1,6 +1,37 @@
-build/
-out/
-bin/
-test/
+# Build artifacts
+**/build/
+**/app/
+**/obj/
+**/bin/
 
+# Object files
+*.o
+*.obj
+
+# Compilers
+*.d
+*.gcno
+*.gcda
+
+# Generated dependency files
+**/*.d
+
+# Python
+__pycache__/
+*.pyc
+
+# IDEs
 .vscode/
+.idea/
+*.suo
+*.user
+*.sln
+*.vcxproj*
+
+# Editor temp files
+*~
+*.swp
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
