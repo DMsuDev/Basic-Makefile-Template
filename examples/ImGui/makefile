@@ -16,10 +16,13 @@
 .DEFAULT_GOAL := all
 
 # 0 = Silent Mode; 1 = Color & Details Mode
-ifneq ($(filter -j%,$(MAKEFLAGS)),)
+VERBOSE ?= 1
+
+# Optional: if the user passes -s (--silent), force VERBOSE=0
+ifneq ($(findstring s,$(MAKEFLAGS)),)
     VERBOSE := 0
-else
-    VERBOSE := 1
+else ifneq ($(filter -j%,$(MAKEFLAGS)),)
+	VERBOSE := 0
 endif
 
 ifeq ($(VERBOSE),1)
@@ -40,6 +43,18 @@ else
 	INFO_COLOR   :=
 	TITLE_COLOR  :=
 	HIGHLIGHT    :=
+endif
+
+# Platform-specific detection for commands
+
+UNAME_S := $(shell uname -s 2>/dev/null || echo Unknown)
+
+ifeq ($(findstring Windows,$(OS)),Windows)
+    IS_WINDOWS := yes
+else ifeq ($(UNAME_S),Darwin)
+    IS_MACOS := yes
+else ifeq ($(UNAME_S),Linux)
+    IS_LINUX := yes
 endif
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -105,7 +120,7 @@ endif
 # Platform detection & common settings
 # ──────────────────────────────────────────────────────────────────────────────
 
-ifeq ($(OS),Windows_NT)
+ifeq ($(IS_WINDOWS),yes)
     OS_NAME     := Windows
     ifeq ($(USE_CONSOLE),false)
         CONSOLEFLAGS := -mwindows
@@ -128,11 +143,10 @@ ifeq ($(OS),Windows_NT)
         HOST_ARCH := x86_64
     endif
 else
-    UNAME_S := $(shell uname -s)
-    ifeq ($(UNAME_S),Linux)
+    ifeq ($(IS_LINUX),yes)
         OS_NAME := Linux
     endif
-    ifeq ($(UNAME_S),Darwin)
+    ifeq ($(IS_MACOS),yes)
         OS_NAME := macOS
     endif
     RM          := rm -rf
@@ -258,7 +272,7 @@ $(DEP_DIR)/%.d: ;
 
 .PHONY: clean-banner
 clean-banner:
-	@clear 2>/dev/null || cls
+	@if [ -t 1 ]; then clear; fi
 ifeq ($(VERBOSE),1)
 	@printf "$(INFO_COLOR)─── Build: $(HIGHLIGHT)$(APP_NAME)$(NO_COLOR)\n"
 	@printf "  $(BOLD)> OS:$(NO_COLOR)           %s\n" "$(OS_NAME)"
