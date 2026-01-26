@@ -120,7 +120,7 @@ release: all
 .PHONY: clean-banner run clean help
 
 clean-banner:
-	@clear 2>/dev/null || cls
+	@if [ -t 1 ]; then clear; fi
 
 run: release
 	@$(BIN_DIR)/$(APP_NAME)
@@ -131,9 +131,9 @@ clean:
 
 help:
 	@echo "Available targets:"
-	@echo "  make [all]     → Build (default)"
-	@echo "  make debug     → Build with debug symbols"
-	@echo "  make release   → Build optimized"
-	@echo "  make run       → Build release + execute"
-	@echo "  make clean     → Remove build artifacts"
-	@echo "  make help      → Show this help"
+	@echo "  make [all]    - Build (default)"
+	@echo "  make debug    - Build with debug symbols"
+	@echo "  make release  - Build optimized"
+	@echo "  make run      - Build release + execute"
+	@echo "  make clean    - Remove build artifacts"
+	@echo "  make help     - Show this help"
