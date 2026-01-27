@@ -2,7 +2,7 @@
 
 [![Make](https://img.shields.io/badge/Build-Make-6D00CC?style=flat&logo=cmake&logoColor=white)](https://www.gnu.org/software/make/)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey?style=flat)
-[![C](https://img.shields.io/badge/Language-C-A8B9CC?style=flat&logo=c)](https://en.wikipedia.org/wiki/C_(programming_language))
+[![C](https://img.shields.io/badge/Language-C-A8B9CC?style=flat&logo=c)](<https://en.wikipedia.org/wiki/C_(programming_language)>)
 [![C++](https://img.shields.io/badge/Language-C%2B%2B-00599C?style=flat&logo=cplusplus&logoColor=white)](https://isocpp.org/)
 ![Status](https://img.shields.io/badge/Status-Stable-success?style=flat)
 
@@ -24,6 +24,31 @@ Designed to be simple, readable, and easy to extend, ideal for game engines, too
 - Dependency tracking with `.d` files
 - Assembly generation (`make asm`) and binary disassembly (`make disasm`)
 - Multi-core parallel builds support with clean handling
+
+## 🚩 Quick Start - Run the Examples
+
+In the root directory are a main **Makefile** for building two simple examples:
+- **Spinning ASCII Donut**: A terminal-based 3D donut animation (in `examples/donut-basic/`)
+- **ImGui + GLFW Demo**: A graphical window using ImGui and GLFW (in`examples/ImGui/`)
+
+### Clone the repository
+
+```bash
+git clone https://github.com/DMsuDev/Basic-Makefile-Template.git
+cd Basic-Makefile-Template
+```
+
+### Steps to build and run the examples:
+
+```Bash
+# Option 1: View the spinning ASCII donut (terminal animation)
+make run-donut
+
+# Option 2: Open the ImGui window (graphical demo with GLFW)
+make run-imgui
+```
+
+> If you want to know more commands type in the terminal `make help`
 
 ## Main Commands
 
@@ -65,6 +90,7 @@ make run -j12
   - This prevents the terminal from becoming a mess when compiling dozens/hundreds of files at once.
 
 - **Note**: Start with `-j4` or `-j8` and increase until you find the sweet spot for your machine (too high can cause memory thrashing if RAM is limited).
+- **On linux**: The verbose mode not deactivates automatically, so you can use `-s` to reduce output if needed.
 
 ## ⚙️ Customization
 
@@ -74,7 +100,7 @@ These variables control the behavior of the project and can be overridden direct
 
 | Variable         | Description                           | Default       |
 | ---------------- | ------------------------------------- | ------------- |
-| **APP_NAME**     | Output executable name (no extension) | `MyProject`   |
+| **APP_NAME**     | Output executable name (no extension) | `ProjectName` |
 | **SRC_EXT**      | Source file extension                 | `cpp`         |
 | **LANGUAGE**     | C/C++ standard                        | `c++23`       |
 | **CXX**          | Compiler to use                       | `g++`         |
