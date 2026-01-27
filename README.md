@@ -28,6 +28,7 @@ Designed to be simple, readable, and easy to extend, ideal for game engines, too
 ## 🚩 Quick Start - Run the Examples
 
 In the root directory are a main **Makefile** for building two simple examples:
+
 - **Spinning ASCII Donut**: A terminal-based 3D donut animation (in `examples/donut-basic/`)
 - **ImGui + GLFW Demo**: A graphical window using ImGui and GLFW (in`examples/ImGui/`)
 
@@ -47,6 +48,8 @@ make run-donut
 # Option 2: Open the ImGui window (graphical demo with GLFW)
 make run-imgui
 ```
+
+**Note**: To run the ImGui example, copy the required `glfw3.dll` from the `lib/` folder to the `build/app/` directory after building.
 
 > If you want to know more commands type in the terminal `make help`
 
