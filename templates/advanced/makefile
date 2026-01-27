@@ -15,39 +15,12 @@
 # Default build type when running plain `make`
 .DEFAULT_GOAL := all
 
-# 0 = Silent Mode; 1 = Color & Details Mode
-ifneq ($(filter -j%,$(MAKEFLAGS)),)
-    VERBOSE := 0
-else
-    VERBOSE := 1
-endif
-
-ifeq ($(VERBOSE),1)
-	NO_COLOR     := \033[0m
-	BOLD         := \033[1m
-	OK_COLOR     := \033[32;01m
-	WARN_COLOR   := \033[33;01m
-	ERROR_COLOR  := \033[31;01m
-	INFO_COLOR   := \033[36;01m
-	TITLE_COLOR  := \033[35;01m
-	HIGHLIGHT    := \033[95;01m
-else
-	NO_COLOR     :=
-	BOLD         :=
-	OK_COLOR     :=
-	WARN_COLOR   :=
-	ERROR_COLOR  :=
-	INFO_COLOR   :=
-	TITLE_COLOR  :=
-	HIGHLIGHT    :=
-endif
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Main configuration – customize these variables
 # ──────────────────────────────────────────────────────────────────────────────
 
 # Application name (without extension)
-APP_NAME ?= MyProject
+APP_NAME ?= ProjectName
 
 # Source file extension
 SRC_EXT  ?= cpp
@@ -102,10 +75,100 @@ else
 endif
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Platform detection & common settings
+# Verbose mode configuration
 # ──────────────────────────────────────────────────────────────────────────────
 
-ifeq ($(OS),Windows_NT)
+# 0 = Silent Mode; 1 = Color & Details Mode
+VERBOSE ?= 1
+
+# Optional: if the user passes -s (--silent), force VERBOSE=0
+ifneq ($(findstring s,$(MAKEFLAGS)),)
+    VERBOSE := 0
+else ifneq ($(filter -j%,$(MAKEFLAGS)),)
+	VERBOSE := 0
+endif
+
+ifeq ($(VERBOSE),1)
+	NO_COLOR     := \033[0m
+	BOLD         := \033[1m
+	OK_COLOR     := \033[32;01m
+	WARN_COLOR   := \033[33;01m
+	ERROR_COLOR  := \033[31;01m
+	INFO_COLOR   := \033[36;01m
+	TITLE_COLOR  := \033[35;01m
+	HIGHLIGHT    := \033[95;01m
+else
+	NO_COLOR     :=
+	BOLD         :=
+	OK_COLOR     :=
+	WARN_COLOR   :=
+	ERROR_COLOR  :=
+	INFO_COLOR   :=
+	TITLE_COLOR  :=
+	HIGHLIGHT    :=
+endif
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Platform detection
+# ──────────────────────────────────────────────────────────────────────────────
+
+UNAME_S := $(shell uname -s 2>/dev/null || echo Unknown)
+
+ifeq ($(findstring Windows,$(OS)),Windows)
+    IS_WINDOWS := yes
+else ifeq ($(UNAME_S),Darwin)
+    IS_MACOS := yes
+else ifeq ($(UNAME_S),Linux)
+    IS_LINUX := yes
+endif
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Libraries & linker flags – main customization area
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Library search paths (use -L) ──
+LDFLAGS ?= -L./lib/
+
+# ── Libraries to link against (use -l) ──
+LIBS ?= 
+
+# === Platform-specific libraries ===
+ifeq ($(IS_WINDOWS),yes)
+    # GLFW on Windows (dinamic linking)
+    # LIBS += -lglfw3dll
+	
+    # OpenGL on Windows
+	LIBS += -lgdi32 -lopengl32
+	
+    # If using GUI app (no console), link additional libraries
+    #LIBS += -luser32 -lgdi32 -lkernel32
+	
+    # Optional: link with Shell32 and Dwmapi for advanced Windows features
+    # LIBS += -lshell32 -ldwmapi
+endif
+
+ifeq ($(IS_LINUX),yes)
+    # GLFW on Linux
+    # LIBS += -lglfw
+
+    # OpenGL + X11 stack
+    LIBS += -lGL -ldl -lpthread 
+    LIBS += -lXrandr -lXinerama -lXcursor -lXi
+endif
+
+ifeq ($(IS_MACOS),yes)
+    # macOS frameworks (use -framework instead of -l)
+    LDFLAGS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
+endif
+
+# ── Final linker command ingredients ──
+LDFLAGS += $(LIBS) $(CONSOLEFLAGS)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Platforms common configuration
+# ──────────────────────────────────────────────────────────────────────────────
+
+ifeq ($(IS_WINDOWS),yes)
     OS_NAME     := Windows
     ifeq ($(USE_CONSOLE),false)
         CONSOLEFLAGS := -mwindows
@@ -128,11 +191,10 @@ ifeq ($(OS),Windows_NT)
         HOST_ARCH := x86_64
     endif
 else
-    UNAME_S := $(shell uname -s)
-    ifeq ($(UNAME_S),Linux)
+    ifeq ($(IS_LINUX),yes)
         OS_NAME := Linux
     endif
-    ifeq ($(UNAME_S),Darwin)
+    ifeq ($(IS_MACOS),yes)
         OS_NAME := macOS
     endif
     RM          := rm -rf
@@ -143,37 +205,6 @@ endif
 
 TARGET_ARCH := $(if $(filter native,$(ARCH)),$(HOST_ARCH),$(ARCH))
 TARGET := $(APP_NAME)-$(TARGET_ARCH)$(if $(filter Windows,$(OS_NAME)),.exe,)
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Libraries & linker flags – main customization area
-# ──────────────────────────────────────────────────────────────────────────────
-
-# ── Library search paths (use -L) ──
-LDFLAGS ?= -L./lib/
-
-# ── Libraries to link against (use -l) ──
-LIBS ?= 
-
-# === Platform-specific libraries ===
-ifeq ($(OS),Windows_NT)
-    # Windows / MinGW common
-    LIBS += -lkernel32 -luser32 -lgdi32 -lshell32 -ldwmapi
-endif
-
-ifeq ($(OS_NAME),Linux)
-    # Typical Linux dependencies
-    # threads (usually needed on Linux)
-    # LIBS += -lXrandr -lXinerama -lXcursor -lXi
-    LIBS += -lGL -ldl -lpthread 
-endif
-
-ifeq ($(OS_NAME),macOS)
-    # macOS frameworks (use -framework instead of -l)
-    LDFLAGS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
-endif
-
-# ── Final linker command ingredients ──
-LDFLAGS += $(LIBS) $(CONSOLEFLAGS)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Automatic source & object discovery
@@ -258,7 +289,7 @@ $(DEP_DIR)/%.d: ;
 
 .PHONY: clean-banner
 clean-banner:
-	@clear 2>/dev/null || cls
+	@if [ -t 1 ]; then clear; fi
 ifeq ($(VERBOSE),1)
 	@printf "$(INFO_COLOR)─── Build: $(HIGHLIGHT)$(APP_NAME)$(NO_COLOR)\n"
 	@printf "  $(BOLD)> OS:$(NO_COLOR)           %s\n" "$(OS_NAME)"
