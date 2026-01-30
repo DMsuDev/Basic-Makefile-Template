@@ -8,16 +8,12 @@
 #           assembly output, disassembly, clean & informative output
 # ==============================================================================
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Primary Build Configuration
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Primary Build Configuration ──────────────────────────────────────────────
 
 # Default build type when running plain `make`
 .DEFAULT_GOAL := all
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Main configuration – customize these variables
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Main configuration options ───────────────────────────────────────────────
 
 # Application name (without extension)
 APP_NAME ?= ProjectName
@@ -41,9 +37,7 @@ USE_CONSOLE ?= true
 OPT_RELEASE ?= -O3
 OPT_DEBUG   ?= -Og
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Paths – usually no need to change
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Paths – usually no need to change ─────────────────────────────────────────
 
 # Can be a list separate by spaces " ": include/ src/ src/core imgui/
 SOURCE_DIRS  ?= src include
@@ -55,9 +49,7 @@ OBJ_DIR      := $(BUILD_BASE)/obj
 DEP_DIR      := $(BUILD_BASE)/dep
 ASM_DIR      := $(BUILD_BASE)/asm
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Compiler & flags
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Compiler & flags configuration ─────────────────────────────────────────────
 
 # Set flags that control and shows the error of the compiler
 # If type -Werror the compiler when throw error message stop the compilation.
@@ -74,9 +66,7 @@ else
     OBJDUMP  := objdump
 endif
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Verbose mode configuration
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Verbose mode configuration ──────────────────────────────────────────────────
 
 # 0 = Silent Mode; 1 = Color & Details Mode
 VERBOSE ?= 1
@@ -108,9 +98,7 @@ else
 	HIGHLIGHT    :=
 endif
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Platform detection
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Platform detection ─────────────────────────────────────────────────────────
 
 UNAME_S := $(shell uname -s 2>/dev/null || echo Unknown)
 
@@ -122,14 +110,12 @@ else ifeq ($(UNAME_S),Linux)
     IS_LINUX := yes
 endif
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Libraries & linker flags – main customization area
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Libraries & linker flags – main customization area ─────────────────────────
 
-# ── Library search paths (use -L) ──
+# Library search paths (use -L)
 LDFLAGS ?= -L./lib/
 
-# ── Libraries to link against (use -l) ──
+# Libraries to link against (use -l)
 LIBS ?= 
 
 # === Platform-specific libraries ===
@@ -161,12 +147,10 @@ ifeq ($(IS_MACOS),yes)
     LDFLAGS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
 endif
 
-# ── Final linker command ingredients ──
+# Final linker command ingredients
 LDFLAGS += $(LIBS) $(CONSOLEFLAGS)
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Platforms common configuration
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Platforms common configuration ─────────────────────────────────────────────
 
 ifeq ($(IS_WINDOWS),yes)
     OS_NAME     := Windows
@@ -206,9 +190,7 @@ endif
 TARGET_ARCH := $(if $(filter native,$(ARCH)),$(HOST_ARCH),$(ARCH))
 TARGET := $(APP_NAME)-$(TARGET_ARCH)$(if $(filter Windows,$(OS_NAME)),.exe,)
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Automatic source & object discovery
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Automatic source & object discovery ────────────────────────────────────────
 
 # Find all source files recursively
 define recurse
@@ -226,9 +208,7 @@ INCLUDES     := $(addprefix -I,$(INCLUDE_DIRS))
 # Generate files that encode make rules for the .h dependencies
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Build rules
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Build rules ──────────────────────────────────────────────────────────────
 
 .PHONY: all dirs
 ifeq ($(words $(SOURCES)),0)
@@ -283,9 +263,7 @@ $(DEP_DIR)/%.d: ;
 
 -include $(DEPENDENCIES)
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Build UI variants
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Build UI variants ────────────────────────────────────────────────────────────
 
 .PHONY: clean-banner
 clean-banner:
@@ -301,9 +279,7 @@ else
 	@printf "OS: $(OS_NAME)   |   Host: $(HOST_ARCH)   |   TARGET arch: $(TARGET_ARCH)\n\n"
 endif
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Build variants
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Build variants ──────────────────────────────────────────────────────────────
 
 .PHONY: debug release 
 
@@ -322,9 +298,7 @@ debug: all
 release: CXXFLAGS += $(OPT_RELEASE) -DNDEBUG -march=$(ARCH)
 release: all
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Assembly & Disassembly
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Assembly & Disassembly ──────────────────────────────────────────────────────
 
 .PHONY: asm
 asm:
@@ -347,9 +321,7 @@ disasm: all
 	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Output:" "$(ASM_DIR)"
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Run Rules
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Run Rules ──────────────────────────────────────────────────────────────
 
 .PHONY: run run-debug
 run: release
@@ -366,9 +338,7 @@ run-debug: debug
 	@$(BIN_DIR)/$(TARGET)
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Clean Rules
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Clean Rules ──────────────────────────────────────────────────────────────
 
 .PHONY: clean full-clean
 clean:
@@ -385,9 +355,7 @@ full-clean:
 	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Done" "$(BUILD_BASE)"
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Help & Info
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Help & Info ──────────────────────────────────────────────────────────────
 
 .PHONY: help info
 
