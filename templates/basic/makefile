@@ -7,9 +7,7 @@
 # Default build type when running plain `make`
 .DEFAULT_GOAL := all
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Main configuration – customize these variables
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Main configuration ───────────────────────────────────────────────────────
 
 APP_NAME    ?= ProjectName
 SRC_EXT     ?= cpp
@@ -17,9 +15,7 @@ LANGUAGE    ?= c++23
 CXX         ?= g++
 USE_CONSOLE ?= true
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Directories & Paths
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Directories & Paths ──────────────────────────────────────────────────────
 
 # Can be a list separate by spaces " ": include/ src/ src/core imgui/
 SOURCE_DIRS   ?= src
@@ -30,9 +26,7 @@ BIN_DIR       := $(BUILD_BASE)/bin
 OBJ_DIR       := $(BUILD_BASE)/obj
 DEP_DIR       := $(BUILD_BASE)/dep
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Compiler & Linker flags (base)
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Compiler & Linker flags (base) ─────────────────────────────────────────────
 
 CXXFLAGS_BASE := -std=$(LANGUAGE) -fdiagnostics-color=always
 
@@ -49,9 +43,7 @@ ifeq ($(USE_CONSOLE),false)
     # LDFLAGS += -luser32 -lgdi32
 endif
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Automatic source & object discovery
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Automatic source & object discovery ──────────────────────────────────────
 
 # Find all source files recursively
 define recurse
@@ -73,9 +65,7 @@ LDFLAGS      += $(LIB_DIRS) $(addprefix -l,$(LIBS))
 # Generate files that encode make rules for the .h dependencies
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Build rules
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Build rules ──────────────────────────────────────────────────────────────
 
 .PHONY: all dirs
 
@@ -102,20 +92,17 @@ $(DEP_DIR)/%.d: ;
 
 -include $(DEPENDENCIES)
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Build variants
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Build variants ───────────────────────────────────────────────────────
 
 .PHONY: debug release
+
 debug:   CXXFLAGS += -Og -g -ggdb3 -DDEBUG
 debug:   all
 
 release: CXXFLAGS += -O3 -DNDEBUG -march=native
 release: all
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Utility targets
-# ──────────────────────────────────────────────────────────────────────────────
+# ─── Additional targets ──────────────────────────────────────────────────────
 
 .PHONY: clean-banner run clean help
 
