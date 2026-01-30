@@ -50,12 +50,17 @@ run-imgui:
 	@$(MAKE) --no-print-directory -C $(EXAMPLES_DIR)/ImGui run
 
 # ─── Clean targets ─────────────────────────────────────────────────────────
-.PHONY: clean
+.PHONY: clean clean-all
 
 clean:
 	@$(MAKE) --no-print-directory -C $(EXAMPLES_DIR)/donut-basic clean
 	@$(MAKE) --no-print-directory -C $(EXAMPLES_DIR)/ImGui clean
 	@echo "→ Cleaned all examples"
+
+clean-all:
+	@$(RMDIR) $(EXAMPLES_DIR)/donut-basic/build
+	@$(RMDIR) $(EXAMPLES_DIR)/ImGui/build
+	@echo "→ Removed all build directories"
 
 # ─── Utilities ────────────────────────────────────────────────────────────
 .PHONY: list help
