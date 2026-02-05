@@ -20,12 +20,15 @@ Designed to be simple, readable, and easy to extend, ideal for game engines, too
 ## ⭐ Features
 
 - ✅ **Cross-Platform**: Windows, Linux, macOS with automatic detection
-- ✅ **Debug & Release**: Configurations with proper optimization levels
-- ✅ **Architecture Optimization**: Architecture-specific optimization (`-march=native` by default)
+- ✅ **Build Types**: Multiple configurations (release, debug, relwithdebinfo, analyze) with proper optimization levels
+- ✅ **Architecture Optimization**: Architecture-specific optimization via `ARCH` variable (native, skylake, znver4, armv8-a, etc.)
+- ✅ **Link-Time Optimization (LTO)**: Control LTO with `USE_LTO` flag (enabled by default in release builds)
+- ✅ **Static Analysis**: Built-in `make analyze` target for static code analysis
 - ✅ **Dependency Tracking**: Automatic `.d` file generation
-- ✅ **Assembly Output**: Generate assembly files (`make asm`) and disassembly (`make disasm`)
+- ✅ **Assembly Output**: Generate assembly files (`make asm`) and disassembly (`make disassemble`)
 - ✅ **Parallel Builds**: Multi-core compilation support with automatic verbosity reduction
-- ✅ **Improved UI**: Better build output with status indicators
+- ✅ **Sanitizers**: AddressSanitizer and UndefinedBehaviorSanitizer support in debug builds (Linux/macOS)
+- ✅ **Improved UI**: Better build output with status indicators and build type information
 - ✅ **Two Templates**: Basic (simple) and Advanced (feature-rich)
 
 ## 🚩 Quick Start - Run the Examples
@@ -78,19 +81,21 @@ project/
 
 ## Main Commands
 
-| Command           | Description                               | When to use                           |
-| ----------------- | ----------------------------------------- | ------------------------------------- |
-| `make`            | Release build (default target)            | Everyday development                  |
-| `make release`    | Explicit Release build with optimizations | Final/performance builds              |
-| `make debug`      | Debug build + symbols + sanitizers        | Bug hunting, ASan/UBSan               |
-| `make run`        | Release build + execute binary            | Quick testing                         |
-| `make run-debug`  | Debug build + execute binary              | Debugging sessions                    |
-| `make asm`        | Generate Intel-syntax `.s` assembly files | Inspecting compiler output            |
-| `make disasm`     | Disassemble final binary (objdump)        | Optimization / reverse engineering    |
-| `make clean`      | Remove objects, deps, asm, binary         | Fresh start for current config        |
-| `make full-clean` | Delete entire `./build/` directory        | Changing compiler or major flags      |
-| `make help`       | Show help message                         | Quick reference                       |
-| `make info`       | Show project configuration summary        | Verify paths, compiler, sources count |
+| Command              | Description                               | When to use                           |
+| -------------------- | ----------------------------------------- | ------------------------------------- |
+| `make`               | Release build (default target)            | Everyday development                  |
+| `make release`       | Explicit Release build with optimizations | Final/performance builds              |
+| `make debug`         | Debug build + symbols + sanitizers        | Bug hunting, ASan/UBSan               |
+| `make relwithdebinfo`| Release with debug info (best of both)    | Profiling with symbol debugging       |
+| `make analyze`       | Static analysis build                     | Code quality checks                   |
+| `make run`           | Release build + execute binary            | Quick testing                         |
+| `make run-debug`     | Debug build + execute binary              | Debugging sessions                    |
+| `make asm`           | Generate Intel-syntax `.s` assembly files | Inspecting compiler output            |
+| `make disassemble`   | Disassemble final binary (objdump)        | Optimization / reverse engineering    |
+| `make clean`         | Remove objects, deps, asm, binary         | Fresh start for current config        |
+| `make clean-all`     | Delete entire `./build/` directory        | Changing compiler or major flags      |
+| `make help`          | Show help message                         | Quick reference                       |
+| `make info`          | Show project configuration summary        | Verify paths, compiler, sources count |
 
 ## 🚀 Parallel / Multi-Core Builds (Recommended for Speed)
 
@@ -124,35 +129,53 @@ make run -j12
 
 These variables control the behavior of the project and can be overridden directly from the command line:
 
-| Variable         | Description                           | Default       |
-| ---------------- | ------------------------------------- | ------------- |
-| **APP_NAME**     | Output executable name (no extension) | `ProjectName` |
-| **SRC_EXT**      | Source file extension                 | `cpp`         |
-| **LANGUAGE**     | C/C++ standard                        | `c++23`       |
-| **CXX**          | Compiler to use                       | `g++`         |
-| **USE_CONSOLE**  | Show console window on Windows        | `true`        |
-| **ARCH**         | Target architecture (`-march=`)       | `native`      |
-| **LIBS**         | Libraries to link (`-l`)              |               |
-| **LDFLAGS**      | Library search paths (`-L`)           | `-L./lib/`    |
-| **SOURCE_DIRS**  | Source directories                    | `src include` |
-| **INCLUDE_DIRS** | Include directories                   | `include`     |
-| **OPT_RELEASE**  | Optimization flags (Release)          | `-O3`         |
-| **OPT_DEBUG**    | Optimization flags (Debug)            | `-Og`         |
+| Variable         | Description                                    | Default       |
+| ---------------- | ---------------------------------------------- | ------------- |
+| **APP_NAME**     | Output executable name (no extension)          | `ProjectName` |
+| **SRC_EXT**      | Source file extension                          | `cpp`         |
+| **LANGUAGE**     | C/C++ standard                                 | `c++23`       |
+| **CXX**          | Compiler to use                                | `g++`         |
+| **USE_CONSOLE**  | Show console window on Windows                 | `true`        |
+| **BUILD_TYPE**   | Build variant (release/debug/relwithdebinfo)   | `release`     |
+| **USE_LTO**      | Enable Link-Time Optimization                  | `true`        |
+| **ANALYZE**      | Enable static analysis flags                   | `false`       |
+| **ARCH**         | Target architecture (`-march=`)                | `native`      |
+| **LIBS**         | Libraries to link (`-l`)                       |               |
+| **LDFLAGS**      | Library search paths (`-L`)                    | `-L./lib/`    |
+| **SOURCE_DIRS**  | Source directories                             | `src include` |
+| **INCLUDE_DIRS** | Include directories                            | `include`     |
+| **OPT_RELEASE**  | Optimization flags (Release)                   | `-O3`         |
+| **OPT_DEBUG**    | Optimization flags (Debug)                     | `-Og`         |
 
 ```bash
-# Change name app
+# Change app name
 make APP_NAME=MyApp
 
-# Use Clang++ and C++20 instead G++ and C++23 (Default values)
+# Use Clang++ and C++20 instead of G++ and C++23 (default values)
 make CXX=clang++ LANGUAGE=c++20
 
-# Compile the $(APP_NAME) without console
+# Build without console window on Windows
 make release USE_CONSOLE=false
 
-# Optimize for specific CPU
+# Optimize for specific CPU architecture
 make release ARCH=znver4          # AMD Zen 4
 make release ARCH=skylake         # Intel 6th–9th gen
 make release ARCH=armv8-a         # ARM (requires cross-compiler)
+
+# Build with debug symbols and optimizations (best for profiling)
+make relwithdebinfo
+
+# Build with static analysis enabled
+make ANALYZE=true release
+
+# Debug build with all sanitizers and verbose output
+make debug VERBOSE=1
+
+# Release build without Link-Time Optimization (faster linking)
+make release USE_LTO=false
+
+# Parallel build with 8 cores (release configuration)
+make -j8 release
 ```
 
 ### Adding libraries manually on Makefile (example: GLFW + OpenGL)
