@@ -13,6 +13,9 @@
 # Default build type when running plain `make`
 .DEFAULT_GOAL := all
 
+# Ensure consistent behavior across make versions
+.SUFFIXES:
+
 # ─── Main configuration options ───────────────────────────────────────────────
 
 # Application name (without extension)
@@ -258,16 +261,14 @@ $(BIN_DIR)/$(TARGET): $(OBJECTS)
 		|| printf "  $(ERROR_COLOR)✗$(NO_COLOR) %-10s : %s\n" "Status" "Linking failed"
 	@printf "$(INFO_COLOR)────────────────────────────────────────────$(NO_COLOR)\n"
 
-$(DEP_DIR)/%.d: ;
-.PRECIOUS: $(DEP_DIR)/%.d
-
--include $(DEPENDENCIES)
+# Only include existing dependency files - avoids infinite loops
+-include $(wildcard $(DEPENDENCIES))
 
 # ─── Build UI variants ────────────────────────────────────────────────────────────
 
 .PHONY: clean-banner
 clean-banner:
-	@if [ -t 1 ]; then clear; fi
+	@cls 2>/dev/null || clear
 ifeq ($(VERBOSE),1)
 	@printf "$(INFO_COLOR)─── Build: $(HIGHLIGHT)$(APP_NAME)$(NO_COLOR)\n"
 	@printf "  $(BOLD)> OS:$(NO_COLOR)           %s\n" "$(OS_NAME)"
