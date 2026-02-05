@@ -1,7 +1,7 @@
 # Modern C++ Makefile Template
 
 [![Make](https://img.shields.io/badge/Build-Make-6D00CC?style=flat&logo=cmake&logoColor=white)](https://www.gnu.org/software/make/)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey?style=flat)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey?style=flat)
 [![C](https://img.shields.io/badge/Language-C-A8B9CC?style=flat&logo=c)](<https://en.wikipedia.org/wiki/C_(programming_language)>)
 [![C++](https://img.shields.io/badge/Language-C%2B%2B-00599C?style=flat&logo=cplusplus&logoColor=white)](https://isocpp.org/)
 ![Status](https://img.shields.io/badge/Status-Stable-success?style=flat)
@@ -11,7 +11,7 @@
 [![GCC](https://img.shields.io/badge/Build-GCC-000000?style=flat&logo=gnu&logoColor=white)](https://gcc.gnu.org/)
 
 A clean, lightweight, and cross-platform **Makefile** for C++ projects.  
-Supports Windows (**MinGW-w64/MSYS2**), **Linux**, and **macOS** (Experimental) with minimal configuration.
+Supports Windows (**MinGW-w64/MSYS2**), **Linux**, and **macOS** with minimal configuration.
 
 Designed to be simple, readable, and easy to extend, ideal for game engines, tools, small-to-medium applications, learning projects, or as a starting point.
 
@@ -19,18 +19,21 @@ Designed to be simple, readable, and easy to extend, ideal for game engines, too
 
 ## ⭐ Features
 
-- Debug & Release configurations
-- Architecture-specific optimization (`-march=native` by default)
-- Dependency tracking with `.d` files
-- Assembly generation (`make asm`) and binary disassembly (`make disasm`)
-- Multi-core parallel builds support with clean handling
+- ✅ **Cross-Platform**: Windows, Linux, macOS with automatic detection
+- ✅ **Debug & Release**: Configurations with proper optimization levels
+- ✅ **Architecture Optimization**: Architecture-specific optimization (`-march=native` by default)
+- ✅ **Dependency Tracking**: Automatic `.d` file generation
+- ✅ **Assembly Output**: Generate assembly files (`make asm`) and disassembly (`make disasm`)
+- ✅ **Parallel Builds**: Multi-core compilation support with automatic verbosity reduction
+- ✅ **Improved UI**: Better build output with status indicators
+- ✅ **Two Templates**: Basic (simple) and Advanced (feature-rich)
 
 ## 🚩 Quick Start - Run the Examples
 
 In the root directory are a main **Makefile** for building two simple examples:
 
 - **Spinning ASCII Donut**: A terminal-based 3D donut animation (in `examples/donut-basic/`)
-- **ImGui + GLFW Demo**: A graphical window using ImGui and GLFW (in`examples/ImGui/`)
+- **ImGui + GLFW Demo**: A graphical window using ImGui and GLFW (in `examples/ImGui/`)
 
 ### Clone the repository
 
@@ -41,17 +44,37 @@ cd Basic-Makefile-Template
 
 ### Steps to build and run the examples:
 
-```Bash
+```bash
 # Option 1: View the spinning ASCII donut (terminal animation)
 make run-donut
 
 # Option 2: Open the ImGui window (graphical demo with GLFW)
 make run-imgui
+
+# Option 3: See available examples
+make list
+
+# Option 4: Get help
+make help
 ```
 
 **Note**: To run the ImGui example, copy the required `glfw3.dll` from the `lib/` folder to the `build/app/` directory after building.
 
-> If you want to know more commands type in the terminal `make help`
+**For help**: Type `make help` in the terminal to see all available commands.
+
+## 📁 Build Output Structure (v1.0.3+)
+
+```
+project/
+├── build/
+│   ├── app/          ← Executables
+│   ├── obj/          ← Object files (.o)
+│   ├── dep/          ← Dependency files (.d)
+│   └── asm/          ← Assembly files (.s) and disassembly
+└── src/
+```
+
+> **Note**: In v1.0.2 and earlier, executables were in `build/bin/`. Update scripts if needed.
 
 ## Main Commands
 
@@ -163,7 +186,7 @@ MyProject/
 │   └── myproject/
 ├── lib/                  # optional: .a, .lib, .dll files
 ├── build/
-│   ├── bin/              # final executable
+│   ├── app/              # final executable
 │   ├── obj/              # object files
 │   ├── dep/              # .d dependency files
 │   └── asm/              # assembly & disassembly output
@@ -183,6 +206,11 @@ MyProject/
 - `make`
 - Dev packages depending on your project (e.g., `build-essential`, `libglfw3-dev`, `libgl1-mesa-dev`)
 
+### 🍎 macOS
+
+- Xcode Command Line Tools: `xcode-select --install`
+- Homebrew packages (optional): `brew install gcc clang`
+
 ### 🔧 Optional Tools
 
 - `objdump` (for `make disasm`)
@@ -194,14 +222,15 @@ MyProject/
 - **Linking errors on Linux** → Install missing dev packages (e.g., **libglfw3-dev** on **Ubuntu/WSL**)
 - **`make` not found on Windows** → Use `mingw32-make` (included with **MinGW-w64**).
 - **No rule to make target** → Verify source files exist in `src/` (or added folders)
-- **Sanitizers not working on Windows** → Disabled by design (partial support in **_MinGW_**)
+- **Sanitizers not working on Windows** → Disabled by design (partial support in **MinGW**)
 - **Double slashes in paths** → Usually harmless; caused by empty variables in some shells
 - **Colors broken in CI** → Parallel mode auto-disables fancy output
 - **Too much output with `-j`** → Use `-jN` `-s` or redirect to log
+- **`clear` command not found (rare)** → On some Windows shells, fallback to `cls` happens automatically
 
-This project has been primarily developed and tested on **Windows** and **Linux/WSL**.
+---
 
-Support for **macOS** is still experimental and may present unexpected behavior.
+**Note**: This project has been primarily developed and tested on **Windows** and **Linux/WSL**. Support for **macOS** is not guaranteed and may require adjustments.
 
 If you encounter any issues, platform-specific bugs, or inconsistencies, **your feedback is extremely valuable.** 🙏
 
