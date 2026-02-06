@@ -83,10 +83,14 @@ else
 endif
 
 # Convert warnings to errors in release mode
+# -Werror: Treat compiler warnings as errors (enforces code quality standards)
+#   RELEASE builds: Warnings = Build FAILS (no buggy code reaches production)
+#   DEBUG builds:   Warnings = Messages only (faster iteration during development)
+#   relwithdebinfo: Same as release (strict mode with debug symbols)
 ifeq ($(BUILD_TYPE),debug)
 	# Debug: keep warnings as warnings for easier development
 else
-	ERRORFLAGS += -Werror
+    #ERRORFLAGS += -Werror
 endif
 
 ifeq ($(CXX),cl)

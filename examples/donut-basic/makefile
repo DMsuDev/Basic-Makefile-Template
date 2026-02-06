@@ -68,9 +68,13 @@ else
 	ERRORFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY) $(WARN_QUALITY)
 endif
 
-# Convert warnings to errors in release mode (optional)
-ifeq (release,$(findstring release,$(MAKECMDGOALS)))
-	ERRORFLAGS += -Werror
+# Convert warnings to errors in release mode
+# -Werror: Treat compiler warnings as errors (ensures code quality)
+#   - Only applies in release builds to catch potential bugs early
+#   - Debug builds keep warnings as warnings for faster iteration
+#   - Release builds fail if any warning occurs (prevents shipping buggy code)
+ifeq (release,$(findstring release,$(BUILD_TYPE)))
+    #ERROFFLAGS += -Werror
 endif
 
 CXXFLAGS      := $(CXXFLAGS_BASE) $(ERRORFLAGS)

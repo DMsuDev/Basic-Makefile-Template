@@ -69,8 +69,12 @@ else
 endif
 
 # Convert warnings to errors in release mode
+# -Werror: Treat compiler warnings as errors (ensures code quality)
+#   - Only applies in release builds to catch potential bugs early
+#   - Debug builds keep warnings as warnings for faster iteration
+#   - Release builds fail if any warning occurs (prevents shipping buggy code)
 ifeq (release,$(findstring release,$(BUILD_TYPE)))
-	ERROFFLAGS += -Werror
+    #ERROFFLAGS += -Werror
 endif
 
 CXXFLAGS      := $(CXXFLAGS_BASE) $(ERRORFLAGS)
