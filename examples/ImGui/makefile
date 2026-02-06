@@ -47,11 +47,47 @@ DOC_BUILD    := $(BUILD_BASE)/docs
 
 # ─── Compiler Configuration ───────────────────────────────────────────────────
 
-# Error handling and warnings
-# -Werror: The compiler when throw error message stop the compilation.
-ERRORFLAGS := -Wall -Wextra -pedantic-errors -Wconversion -Wsign-conversion \
-              -Wdouble-promotion -Wduplicated-cond -Wduplicated-branches \
-              -Wlogical-op -Wrestrict -Wnull-dereference -Wformat=2
+# Warning Level Configuration
+# Options: minimal, normal, strict (default: strict)
+# - minimal:   Only -Wall -Wextra -pedantic-errors
+# - normal:    + type conversion and format checks
+# - strict:    + logic, safety, and quality warnings
+WARN_LEVEL ?= strict
+
+# Base warnings (always applied)
+ERROFFLAGS := -Wall -Wextra -pedantic-errors
+
+# Type conversion warnings
+WARN_CONVERSION := -Wconversion -Wsign-conversion -Wdouble-promotion
+
+# Logic and correctness warnings
+WARN_LOGIC := -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict
+
+# Safety warnings
+WARN_SAFETY := -Wnull-dereference -Wformat=2 -Wunreachable-code
+
+# Code quality warnings
+WARN_QUALITY := -Wshadow -Wunused -Wunused-parameter
+
+# Apply warning level based on WARN_LEVEL setting
+ifeq ($(WARN_LEVEL),strict)
+	ERROFFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY) $(WARN_QUALITY)
+else ifeq ($(WARN_LEVEL),normal)
+	ERROFFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY)
+else ifeq ($(WARN_LEVEL),minimal)
+	# Only base flags
+else
+	$(warning WARNING: Unknown WARN_LEVEL='$(WARN_LEVEL)', using 'strict')
+	WARN_LEVEL := strict
+	ERROFFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY) $(WARN_QUALITY)
+endif
+
+# Convert warnings to errors in release mode
+ifeq ($(BUILD_TYPE),debug)
+	# Debug: keep warnings as warnings for easier development
+else
+	ERRORFLAGS += -Werror
+endif
 
 ifeq ($(CXX),cl)
     # MSVC
@@ -501,12 +537,21 @@ help:
 	@printf "  $(OK_COLOR)clean-all$(NO_COLOR)         - Remove all build artifacts\n"
 	@printf "  $(OK_COLOR)clean-bench$(NO_COLOR)       - Remove benchmark builds\n\n"
 
+	@printf "$(BOLD)Configuration Options:$(NO_COLOR)\n"
+	@printf "  WARN_LEVEL=<level>   - Warning strictness (minimal, normal, strict)\n"
+	@printf "  BUILD_TYPE=<type>    - Build variant (release, debug, relwithdebinfo)\n"
+	@printf "  ARCH=<arch>          - Target architecture (native, skylake, znver4, etc)\n"
+	@printf "  LANGUAGE=<std>       - C++ standard (c++20, c++23, etc)\n"
+	@printf "  CXX=<compiler>       - Compiler command (g++, clang++, cl, etc)\n"
+	@printf "  VERBOSE=<0|1>        - Output verbosity (1=detailed, 0=quiet)\n\n"
+
 	@printf "$(BOLD)Examples:$(NO_COLOR)\n"
-	@printf "  make APP_NAME=myapp          # Custom app name\n"
-	@printf "  make debug                   # Debug with sanitizers\n"
-	@printf "  make ARCH=native             # Optimize for native CPU\n"
-	@printf "  make ARCH=znver4 CXX=clang++ # AMD Zen4 with Clang\n"
-	@printf "  make LANGUAGE=c++20          # Use C++20 standard\n"
+	@printf "  make APP_NAME=myapp                    # Custom app name\n"
+	@printf "  make debug                             # Debug with sanitizers\n"
+	@printf "  make WARN_LEVEL=minimal                # Minimal warnings\n"
+	@printf "  make WARN_LEVEL=normal ARCH=native     # Balanced warnings + optimization\n"
+	@printf "  make ARCH=znver4 CXX=clang++           # AMD Zen4 with Clang\n"
+	@printf "  make debug WARN_LEVEL=strict VERBOSE=1 # Full debug with detailed output\n"
 	@printf "$(LINES_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 info:

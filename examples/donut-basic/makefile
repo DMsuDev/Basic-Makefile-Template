@@ -33,8 +33,45 @@ DEP_DIR       := $(BUILD_BASE)/dep
 
 CXXFLAGS_BASE := -std=$(LANGUAGE) -fdiagnostics-color=always
 
-# Set flags that control and show compiler errors
-ERRORFLAGS    := -Wall -Wextra -pedantic-errors
+# Warning Level Configuration
+# Options: minimal, normal, strict (default: strict)
+# - minimal:   Only -Wall -Wextra -pedantic-errors
+# - normal:    + type conversion and format checks
+# - strict:    + logic, safety, and quality warnings
+WARN_LEVEL ?= strict
+
+# Base warnings (always applied)
+ERRORFLAGS := -Wall -Wextra -pedantic-errors
+
+# Type conversion warnings
+WARN_CONVERSION := -Wconversion -Wsign-conversion -Wdouble-promotion
+
+# Logic and correctness warnings
+WARN_LOGIC := -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict
+
+# Safety warnings
+WARN_SAFETY := -Wnull-dereference -Wformat=2 -Wunreachable-code
+
+# Code quality warnings
+WARN_QUALITY := -Wshadow -Wunused -Wunused-parameter
+
+# Apply warning level based on WARN_LEVEL setting
+ifeq ($(WARN_LEVEL),strict)
+	ERRORFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY) $(WARN_QUALITY)
+else ifeq ($(WARN_LEVEL),normal)
+	ERRORFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY)
+else ifeq ($(WARN_LEVEL),minimal)
+	# Only base flags
+else
+	$(warning WARNING: Unknown WARN_LEVEL='$(WARN_LEVEL)', using 'strict')
+	WARN_LEVEL := strict
+	ERRORFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY) $(WARN_QUALITY)
+endif
+
+# Convert warnings to errors in release mode (optional)
+ifeq (release,$(findstring release,$(MAKECMDGOALS)))
+	ERRORFLAGS += -Werror
+endif
 
 CXXFLAGS      := $(CXXFLAGS_BASE) $(ERRORFLAGS)
 LDFLAGS       ?= -L./lib
@@ -178,10 +215,15 @@ help:
 	@printf "  full-clean  Delete entire build/\n"
 	@printf "  info        Show configuration\n"
 	@printf "  help        This message\n\n"
-	@printf "Variables (example: make APP_NAME=MyApp):\n"
-	@printf "  APP_NAME    App name (default: $(APP_NAME))\n"
-	@printf "  CXX         Compiler (default: $(CXX))\n"
-	@printf "  LANGUAGE    C++ standard (default: $(LANGUAGE))\n\n"
+	@printf "Configuration Variables:\n"
+	@printf "  APP_NAME      App name (default: $(APP_NAME))\n"
+	@printf "  CXX           Compiler (default: $(CXX))\n"
+	@printf "  LANGUAGE      C++ standard (default: $(LANGUAGE))\n"
+	@printf "  WARN_LEVEL    Warning level: minimal, normal, strict (default: strict)\n\n"
+	@printf "Examples:\n"
+	@printf "  make debug                      # Debug with all warnings\n"
+	@printf "  make WARN_LEVEL=minimal         # Minimal warnings\n"
+	@printf "  make WARN_LEVEL=normal CXX=clang++ # Balanced + clang\n"
 
 info:
 	@printf "\n═══════ Project Info ═══════\n"
