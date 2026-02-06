@@ -274,22 +274,14 @@ else
 endif
 	@$(MKDIR) "$(@D)" >/dev/null 2>&1
 	@$(MKDIR) "$(call FIXPATH,$(dir $(DEP_DIR)/$<))" >/dev/null 2>&1
-	@if $(CXX) $(CXXFLAGS) $(OPTFLAGS) $(SANITIZE_FLAGS) $(INCLUDES) $(DEPFLAGS) -c $< -o $@ 2>compile.log; then \
-		if [ "$(VERBOSE)" = "1" ]; then \
-			printf "$(OK_COLOR)[OK]$(NO_COLOR)\n"; \
-		fi; \
-		rm -f compile.log; \
-	else \
-		if [ "$(VERBOSE)" = "1" ]; then \
+	@$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(SANITIZE_FLAGS) $(INCLUDES) $(DEPFLAGS) -c $< -o $@ && \
+		{ if [ "$(VERBOSE)" = "1" ]; then printf "$(OK_COLOR)[OK]$(NO_COLOR)\n"; fi; } || \
+		{ if [ "$(VERBOSE)" = "1" ]; then \
 			printf "$(ERROR_COLOR)[FAILED]$(NO_COLOR)\n"; \
 			printf "  $(ERROR_COLOR)✗ Compilation failed for $<$(NO_COLOR)\n"; \
 		else \
 			printf "[ERROR] On compilation %s\n" "$<"; \
-		fi; \
-		cat compile.log; \
-		rm -f compile.log; \
-		exit 1; \
-	fi
+		fi; exit 1; }
 
 # Only include existing dependency files - avoids infinite loops
 -include $(wildcard $(DEPENDENCIES))
