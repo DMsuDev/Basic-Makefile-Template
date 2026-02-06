@@ -1,0 +1,73 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim trailing whitespace
+        
+      - id: end-of-file-fixer
+        name: Fix end of file
+        
+      - id: check-yaml
+        name: Check YAML syntax
+        args: [--unsafe]
+        
+      - id: check-json
+        name: Check JSON syntax
+        
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+        
+      - id: check-case-conflict
+        name: Check for case conflicts
+        
+      - id: detect-private-key
+        name: Detect private keys
+      
+      - id: check-added-large-files
+        name: Check for large files
+        args: [--maxkb=1000]
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.37.0
+    hooks:
+      - id: markdownlint
+        name: Lint markdown files
+        args: [--fix]
+        types: [markdown]
+
+  - repo: https://github.com/hadialqattan/pycln
+    rev: v2.4.0
+    hooks:
+      - id: pycln
+        name: Clean Python imports
+        language_version: python3
+
+  - repo: local
+    hooks:
+      - id: makefile-check
+        name: Check Makefile syntax
+        entry: bash -c 'for file in $(find . -name "makefile" -o -name "Makefile"); do make -n -f "$file" 2>/dev/null || { echo "Invalid Makefile: $file"; exit 1; }; done'
+        language: system
+        types: [file]
+        files: '[Mm]akefile'
+        pass_filenames: false
+
+      - id: no-commit-to-main
+        name: Don't commit to main branch
+        entry: bash -c 'if [[ $(git rev-parse --abbrev-ref HEAD) == "main" ]]; then echo "❌ Cannot commit directly to main branch"; exit 1; fi'
+        language: system
+        always_run: true
+        pass_filenames: false
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [makefile-check, no-commit-to-main]
+  submodules: false
