@@ -48,11 +48,11 @@ DOC_BUILD    := $(BUILD_BASE)/docs
 # ─── Compiler Configuration ───────────────────────────────────────────────────
 
 # Warning Level Configuration
-# Options: minimal, normal, strict (default: strict)
+# Options: minimal, normal, strict (default: minimal)
 # - minimal:   Only -Wall -Wextra -pedantic-errors
 # - normal:    + type conversion and format checks
 # - strict:    + logic, safety, and quality warnings
-WARN_LEVEL ?= strict
+WARN_LEVEL ?= minimal
 
 # Base warnings (always applied)
 ERRORFLAGS := -Wall -Wextra -pedantic-errors

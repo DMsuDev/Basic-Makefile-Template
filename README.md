@@ -67,7 +67,7 @@ make help
 
 ## 📁 Build Output Structure (v1.0.3+)
 
-```
+```txt
 project/
 ├── build/
 │   ├── app/          ← Executables
@@ -81,21 +81,21 @@ project/
 
 ## Main Commands
 
-| Command              | Description                               | When to use                           |
-| -------------------- | ----------------------------------------- | ------------------------------------- |
-| `make`               | Release build (default target)            | Everyday development                  |
-| `make release`       | Explicit Release build with optimizations | Final/performance builds              |
-| `make debug`         | Debug build + symbols + sanitizers        | Bug hunting, ASan/UBSan               |
-| `make relwithdebinfo`| Release with debug info (best of both)    | Profiling with symbol debugging       |
-| `make analyze`       | Static analysis build                     | Code quality checks                   |
-| `make run`           | Release build + execute binary            | Quick testing                         |
-| `make run-debug`     | Debug build + execute binary              | Debugging sessions                    |
-| `make asm`           | Generate Intel-syntax `.s` assembly files | Inspecting compiler output            |
-| `make disassemble`   | Disassemble final binary (objdump)        | Optimization / reverse engineering    |
-| `make clean`         | Remove objects, deps, asm, binary         | Fresh start for current config        |
-| `make clean-all`     | Delete entire `./build/` directory        | Changing compiler or major flags      |
-| `make help`          | Show help message                         | Quick reference                       |
-| `make info`          | Show project configuration summary        | Verify paths, compiler, sources count |
+| Command               | Description                               | When to use                           |
+| --------------------- | ----------------------------------------- | ------------------------------------- |
+| `make`                | Release build (default target)            | Everyday development                  |
+| `make release`        | Explicit Release build with optimizations | Final/performance builds              |
+| `make debug`          | Debug build + symbols + sanitizers        | Bug hunting, ASan/UBSan               |
+| `make relwithdebinfo` | Release with debug info (best of both)    | Profiling with symbol debugging       |
+| `make analyze`        | Static analysis build                     | Code quality checks                   |
+| `make run`            | Release build + execute binary            | Quick testing                         |
+| `make run-debug`      | Debug build + execute binary              | Debugging sessions                    |
+| `make asm`            | Generate Intel-syntax `.s` assembly files | Inspecting compiler output            |
+| `make disassemble`    | Disassemble final binary (objdump)        | Optimization / reverse engineering    |
+| `make clean`          | Remove objects, deps, asm, binary         | Fresh start for current config        |
+| `make clean-all`      | Delete entire `./build/` directory        | Changing compiler or major flags      |
+| `make help`           | Show help message                         | Quick reference                       |
+| `make info`           | Show project configuration summary        | Verify paths, compiler, sources count |
 
 ## 🚀 Parallel / Multi-Core Builds (Recommended for Speed)
 
@@ -129,24 +129,24 @@ make run -j12
 
 These variables control the behavior of the project and can be overridden directly from the command line:
 
-| Variable         | Description                                    | Default       |
-| ---------------- | ---------------------------------------------- | ------------- |
-| **APP_NAME**     | Output executable name (no extension)          | `ProjectName` |
-| **SRC_EXT**      | Source file extension                          | `cpp`         |
-| **LANGUAGE**     | C/C++ standard                                 | `c++23`       |
-| **CXX**          | Compiler to use                                | `g++`         |
-| **USE_CONSOLE**  | Show console window on Windows                 | `true`        |
-| **BUILD_TYPE**   | Build variant (release/debug/relwithdebinfo)   | `release`     |
-| **USE_LTO**      | Enable Link-Time Optimization                  | `true`        |
-| **ANALYZE**      | Enable static analysis flags                   | `false`       |
-| **ARCH**         | Target architecture (`-march=`)                | `native`      |
-| **WARN_LEVEL**   | Warning strictness (minimal/normal/strict)     | `strict`      |
-| **LIBS**         | Libraries to link (`-l`)                       |               |
-| **LDFLAGS**      | Library search paths (`-L`)                    | `-L./lib/`    |
-| **SOURCE_DIRS**  | Source directories                             | `src include` |
-| **INCLUDE_DIRS** | Include directories                            | `include`     |
-| **OPT_RELEASE**  | Optimization flags (Release)                   | `-O3`         |
-| **OPT_DEBUG**    | Optimization flags (Debug)                     | `-Og`         |
+| Variable         | Description                                  | Default       |
+| ---------------- | -------------------------------------------- | ------------- |
+| **APP_NAME**     | Output executable name (no extension)        | `ProjectName` |
+| **SRC_EXT**      | Source file extension                        | `cpp`         |
+| **LANGUAGE**     | C/C++ standard                               | `c++23`       |
+| **CXX**          | Compiler to use                              | `g++`         |
+| **USE_CONSOLE**  | Show console window on Windows               | `true`        |
+| **BUILD_TYPE**   | Build variant (release/debug/relwithdebinfo) | `release`     |
+| **USE_LTO**      | Enable Link-Time Optimization                | `true`        |
+| **ANALYZE**      | Enable static analysis flags                 | `false`       |
+| **ARCH**         | Target architecture (`-march=`)              | `native`      |
+| **WARN_LEVEL**   | Warning strictness (minimal/normal/strict)   | `minimal`     |
+| **LIBS**         | Libraries to link (`-l`)                     |               |
+| **LDFLAGS**      | Library search paths (`-L`)                  | `-L./lib/`    |
+| **SOURCE_DIRS**  | Source directories                           | `src include` |
+| **INCLUDE_DIRS** | Include directories                          | `include`     |
+| **OPT_RELEASE**  | Optimization flags (Release)                 | `-O3`         |
+| **OPT_DEBUG**    | Optimization flags (Debug)                   | `-Og`         |
 
 ```bash
 # Change app name
@@ -185,11 +185,11 @@ Control compiler warning strictness with the **`WARN_LEVEL`** variable. Perfect 
 
 ### Available Levels
 
-| Level | Flags | Use Case |
-|-------|-------|----------|
-| **minimal** | Base warnings only (`-Wall -Wextra -pedantic-errors`) | Legacy code, third-party libraries |
-| **normal** | + Type conversion, logic, and safety checks | Standard development (recommended) |
-| **strict** | + Code quality warnings (`-Wshadow`, `-Wunused`, etc) | New projects, CI/CD pipelines (default) |
+| Level       | Flags                                                 | Use Case                                |
+| ----------- | ----------------------------------------------------- | --------------------------------------- |
+| **minimal** | Base warnings only (`-Wall -Wextra -pedantic-errors`) | Legacy code, third-party libraries      |
+| **normal**  | + Type conversion, logic, and safety checks           | Standard development (recommended)      |
+| **strict**  | + Code quality warnings (`-Wshadow`, `-Wunused`, etc) | New projects, CI/CD pipelines (default) |
 
 ### Examples
 
@@ -204,19 +204,22 @@ make WARN_LEVEL=normal CXX=clang++ -j8
 ### What Each Level Includes
 
 **minimal:**
-```
+
+```txt
 -Wall -Wextra -pedantic-errors
 ```
 
 **normal** (minimal +):
-```
+
+```txt
 -Wconversion -Wsign-conversion -Wdouble-promotion
 -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict
 -Wnull-dereference -Wformat=2 -Wunreachable-code
 ```
 
 **strict** (normal +):
-```
+
+```txt
 -Wshadow -Wunused -Wunused-parameter
 ```
 
