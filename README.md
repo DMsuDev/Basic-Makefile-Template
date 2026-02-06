@@ -33,10 +33,11 @@ Designed to be simple, readable, and easy to extend, ideal for game engines, too
 
 ## 🚩 Quick Start - Run the Examples
 
-In the root directory are a main **Makefile** for building two simple examples:
+In the root directory is a main **Makefile** for building three complete examples:
 
 - **Spinning ASCII Donut**: A terminal-based 3D donut animation (in `examples/donut-basic/`)
 - **ImGui + GLFW Demo**: A graphical window using ImGui and GLFW (in `examples/ImGui/`)
+- **Task Manager CLI**: An advanced command-line task management system with JSON persistence (in `examples/task-manager/`)
 
 ### Clone the repository
 
@@ -54,10 +55,16 @@ make run-donut
 # Option 2: Open the ImGui window (graphical demo with GLFW)
 make run-imgui
 
-# Option 3: See available examples
+# Option 3: Run the task manager CLI example
+make run-tm
+
+# Option 4: Build all examples
+make all
+
+# Option 5: See available examples
 make list
 
-# Option 4: Get help
+# Option 6: Get help
 make help
 ```
 

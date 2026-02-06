@@ -37,14 +37,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            examples/ImGui/build/
-          key: ${{ runner.os }}-build-${{ matrix.build-type }}-${{ hashFiles('examples/ImGui/Makefile', 'examples/ImGui/**/*.cpp', 'examples/ImGui/**/*.h', 'examples/ImGui/**/*.hpp') }}
+            examples/task-manager/build/
+            examples/donut-basic/build/
+          key: ${{ runner.os }}-build-${{ matrix.build-type }}-${{ hashFiles('examples/task-manager/makefile', 'examples/task-manager/**/*.cpp', 'examples/donut-basic/makefile', 'examples/donut-basic/**/*.cpp') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ matrix.build-type }}-
 
-      - name: Build ImGui example (${{ matrix.build-type }})
+      - name: Build task-manager example (${{ matrix.build-type }})
         run: |
-          cd examples/ImGui
+          cd examples/task-manager
           if [ "$RUNNER_OS" = "macOS" ]; then
             make BUILD_TYPE=${{ matrix.build-type }} CXX=clang++ clean all -j$(nproc 2>/dev/null || echo 4)
           else
@@ -52,10 +53,30 @@ jobs:
           fi
         shell: bash
 
-      - name: Build ImGui example with analyze
+      - name: Build donut-basic example (${{ matrix.build-type }})
+        run: |
+          cd examples/donut-basic
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            make BUILD_TYPE=${{ matrix.build-type }} CXX=clang++ clean all -j$(nproc 2>/dev/null || echo 4)
+          else
+            make BUILD_TYPE=${{ matrix.build-type }} clean all -j$(nproc 2>/dev/null || echo 4)
+          fi
+        shell: bash
+      
+      - name: Generate assembly and disassembly
+        run: |
+          cd examples/task-manager
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            make CXX=clang++ asm disassemble || true
+          else
+            make asm disassemble || true
+          fi
+        shell: bash
+
+      - name: Build task-manager with static analysis
         if: matrix.build-type == 'debug' && runner.os == 'Linux'
         run: |
-          cd examples/ImGui
+          cd examples/task-manager
           if [ "$RUNNER_OS" = "macOS" ]; then
             make clean CXX=clang++ analyze
           else
@@ -66,7 +87,7 @@ jobs:
       - name: Check compilation
         if: matrix.os == 'ubuntu-latest'
         run: |
-          cd examples/ImGui
+          cd examples/task-manager
           make BUILD_TYPE=debug WARN_LEVEL=normal clean all 2>&1 | tee build.log
           # Count actual compilation errors (not warnings)
           ERROR_COUNT=$(grep -c "error:" build.log || true)
@@ -90,11 +111,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential --no-install-recommends
 
-      - name: Build all examples
+      - name: Build task-manager example
         run: |
+          cd examples/task-manager
+          make BUILD_TYPE=release clean all asm disassemble -j$(nproc)
+
+      - name: Build donut-basic example
+        run: |
+          cd examples/donut-basic
           make BUILD_TYPE=release clean all -j$(nproc)
 
-      - name: Verify executable exists
+      - name: Verify executables
         run: |
-          [ -f "examples/ImGui/build/app/ImGuiExample" ] || { echo "Executable not found!"; exit 1; }
-          echo "✓ ImGuiExample executable built successfully"
+          [ -f "examples/task-manager/build/app/tm" ] || { echo "task-manager executable not found!"; exit 1; }
+          echo "✓ task-manager executable built successfully"
+          [ -f "examples/donut-basic/build/app/donut" ] || { echo "donut-basic executable not found!"; exit 1; }
+          echo "✓ donut-basic executable built successfully"
