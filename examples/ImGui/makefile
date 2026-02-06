@@ -487,8 +487,8 @@ graph-deps:
 clean:
 	@printf "\n$(LINES_COLOR)───────$(NO_COLOR) $(TITLE_COLOR)Clean$(NO_COLOR)\n"
 	@printf "  %-12s : %s\n" "Removing" "OBJ, DEP, ASM, Binary"
-	@$(RM) $(OBJ_DIR) $(DEP_DIR) $(ASM_DIR) "$(BIN_DIR)/$(TARGET)" $(DOC_BUILD) 2>/dev/null || true
-	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Done" "$(OBJ_DIR) $(DEP_DIR) $(ASM_DIR) $(BIN_DIR) $(DOC_BUILD)"
+	@$(RM) $(OBJ_DIR) $(DEP_DIR) $(ASM_DIR) "$(BIN_DIR)/$(TARGET)" $(DOC_BUILD) $(BENCH_DIR) 2>/dev/null || true
+	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Done" "$(OBJ_DIR) $(DEP_DIR) $(ASM_DIR) $(BIN_DIR) $(DOC_BUILD) $(BENCH_DIR)"
 	@printf "$(LINES_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 clean-all:
