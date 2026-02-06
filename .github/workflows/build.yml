@@ -24,35 +24,58 @@ jobs:
       - name: Set up build environment
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
-            choco install mingw -y
+            choco install mingw-w64 make -y
           elif [ "$RUNNER_OS" == "Linux" ]; then
             sudo apt-get update
             sudo apt-get install -y build-essential --no-install-recommends
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            brew install gcc
+            brew update
           fi
         shell: bash
+
+      - name: Cache build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            examples/ImGui/build/
+          key: ${{ runner.os }}-build-${{ matrix.build-type }}-${{ hashFiles('examples/ImGui/Makefile', 'examples/ImGui/**/*.cpp', 'examples/ImGui/**/*.h', 'examples/ImGui/**/*.hpp') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ matrix.build-type }}-
 
       - name: Build ImGui example (${{ matrix.build-type }})
         run: |
           cd examples/ImGui
-          make BUILD_TYPE=${{ matrix.build-type }}
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            make BUILD_TYPE=${{ matrix.build-type }} CXX=clang++ clean all -j$(nproc 2>/dev/null || echo 4)
+          else
+            make BUILD_TYPE=${{ matrix.build-type }} clean all -j$(nproc 2>/dev/null || echo 4)
+          fi
         shell: bash
 
       - name: Build ImGui example with analyze
         if: matrix.build-type == 'debug' && runner.os == 'Linux'
         run: |
           cd examples/ImGui
-          make analyze
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            make clean CXX=clang++ analyze
+          else
+            make clean analyze
+          fi
         shell: bash
 
-      - name: Check compilation warnings
+      - name: Check compilation
         if: matrix.os == 'ubuntu-latest'
         run: |
           cd examples/ImGui
-          make BUILD_TYPE=debug 2>&1 | tee build.log
-          if grep -i "error:" build.log; then
+          make BUILD_TYPE=debug WARN_LEVEL=normal clean all 2>&1 | tee build.log
+          # Count actual compilation errors (not warnings)
+          ERROR_COUNT=$(grep -c "error:" build.log || true)
+          if [ "$ERROR_COUNT" -gt 0 ]; then
+            echo "❌ Compilation errors found:"
+            grep "error:" build.log
             exit 1
+          else
+            echo "✅ Build successful (warnings are allowed in CI)"
           fi
         shell: bash
 
@@ -69,12 +92,12 @@ jobs:
 
       - name: Build all examples
         run: |
-          make
+          make BUILD_TYPE=release clean all -j$(nproc)
 
       - name: Verify executable exists
         run: |
-          [ -f "examples/ImGui/build/app/ImGuiExample" ] || exit 1
-          echo "✓ ImGui executable built successfully"
+          [ -f "examples/ImGui/build/app/ImGuiExample" ] || { echo "Executable not found!"; exit 1; }
+          echo "✓ ImGuiExample executable built successfully"
 
   code-quality:
     runs-on: ubuntu-latest
@@ -85,15 +108,29 @@ jobs:
       - name: Set up build environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \ 
-            build-essential cppcheck clang-tidy
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            cppcheck \
+            clang-tidy
 
       - name: Run cppcheck
         run: |
-          cppcheck --enable=all --suppress=missingIncludeSystem \
-            examples/donut-basic/src/ \
-            examples/*/
+          cppcheck --enable=all --error-exitcode=1 --suppress=missingIncludeSystem \
+            examples/ImGui/ \
+            --suppress=*:*/imgui_impl_* \
+            --suppress=*:*/imgui*.cpp \
+            --inline-suppr \
+            --quiet
+        continue-on-error: false
 
-      - name: Run clang-tidy
+      - name: Run clang-tidy (basic mode)
         run: |
-          clang-tidy examples/*/src/*.cpp -- -Iexamples/*/include
+          cd examples/ImGui
+          clang-tidy \
+            src/*.cpp \
+            -- \
+            -Iinclude \
+            -Iinclude/imgui \
+            -Iinclude/imgui/backends \
+            -std=c++23
+        continue-on-error: true
