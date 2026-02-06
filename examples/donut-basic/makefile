@@ -139,7 +139,9 @@ release: all
 # ─── Display targets ──────────────────────────────────────────────────────────
 
 clean-banner:
-	@cls 2>/dev/null || clear
+	@if [ -t 1 ]; then \
+		if command -v cls >/dev/null 2>&1; then cls; else clear; fi; \
+	fi
 	@printf "\n═══════════════════════════════════════════\n"
 	@printf "  Building: $(APP_NAME)\n"
 	@printf "═══════════════════════════════════════════\n\n"

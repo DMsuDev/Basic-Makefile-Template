@@ -424,7 +424,9 @@ run-debug: debug
 # ─── Build UI variants ────────────────────────────────────────────────────────────
 
 clean-banner:
-	@cls 2>/dev/null || clear
+	@if [ -t 1 ]; then \
+		if command -v cls >/dev/null 2>&1; then cls; else clear; fi; \
+	fi
 ifeq ($(VERBOSE),1)
 	@printf "$(LINES_COLOR)─── Build: $(TITLE_COLOR)$(APP_NAME)$(NO_COLOR)\n"
 	@printf "  $(INFO_COLOR)Build Type:$(NO_COLOR)     $(BOLD)%s$(NO_COLOR)\n" "$(BUILD_TYPE)"
