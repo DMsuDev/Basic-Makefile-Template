@@ -175,9 +175,33 @@ make debug VERBOSE=1
 # Release build without Link-Time Optimization (faster linking)
 make release USE_LTO=false
 
+# Compiler-aware LTO (automatic: thin for Clang, auto for GCC)
+make release CXX=clang++        # Uses -flto=thin (optimized for Clang)
+make release CXX=g++            # Uses -flto=auto (optimized for GCC)
+
 # Parallel build with 8 cores (release configuration)
 make -j8 release
 ```
+
+## 🔗 Link-Time Optimization (LTO)
+
+The Makefile automatically selects the best LTO variant based on your compiler:
+
+| Compiler | LTO Type | Benefit |
+|----------|----------|---------|
+| **Clang/clang++** | `-flto=thin` | Faster compilation, good optimization |
+| **GCC/g++** | `-flto=auto` | Best optimization, slower linking |
+| **Disabled** | (none) | Fastest build time |
+
+```bash
+# Enable LTO (default in release builds)
+make release USE_LTO=true CXX=clang++    # Automatically uses thin LTO
+
+# Disable LTO if linking is too slow
+make release USE_LTO=false
+```
+
+### Parallel build with 8 cores (release configuration)
 
 ## 🔍 Compiler Warning Levels
 
