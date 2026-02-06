@@ -102,6 +102,19 @@ endif
 
 LDFLAGS ?= -L./lib/
 
+# ─── Link-Time Optimization (LTO) Type Detection ───────────────────────────────
+
+# Automatically select LTO type based on compiler
+ifeq ($(CXX),clang++)
+    LTO_FLAG := -flto=thin        # Clang: thin LTO is more compatible and faster
+else ifeq ($(CXX),clang)
+    LTO_FLAG := -flto=thin
+else ifneq ($(findstring clang,$(CXX)),)
+    LTO_FLAG := -flto=thin        # Any clang-like compiler
+else
+    LTO_FLAG := -flto=auto        # GCC: use auto LTO for better optimization
+endif
+
 # ─── Optimization Flags ───────────────────────────────────────────────────────
 
 ifeq ($(BUILD_TYPE),release)
@@ -110,8 +123,10 @@ ifeq ($(BUILD_TYPE),release)
         OPTFLAGS += -march=$(ARCH)
     endif
     ifeq ($(USE_LTO),true)
-        OPTFLAGS += -flto=auto
-        LDFLAGS  += -flto=auto
+    ifneq ($(LTO_FLAG),)
+        OPTFLAGS += $(LTO_FLAG)
+        LDFLAGS  += $(LTO_FLAG)
+    endif
     endif
 else ifeq ($(BUILD_TYPE),debug)
     OPTFLAGS := $(OPT_DEBUG) -ggdb3 -DDEBUG -D_GLIBCXX_DEBUG
