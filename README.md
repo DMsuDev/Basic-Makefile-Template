@@ -140,6 +140,7 @@ These variables control the behavior of the project and can be overridden direct
 | **USE_LTO**      | Enable Link-Time Optimization                  | `true`        |
 | **ANALYZE**      | Enable static analysis flags                   | `false`       |
 | **ARCH**         | Target architecture (`-march=`)                | `native`      |
+| **WARN_LEVEL**   | Warning strictness (minimal/normal/strict)     | `strict`      |
 | **LIBS**         | Libraries to link (`-l`)                       |               |
 | **LDFLAGS**      | Library search paths (`-L`)                    | `-L./lib/`    |
 | **SOURCE_DIRS**  | Source directories                             | `src include` |
@@ -178,7 +179,61 @@ make release USE_LTO=false
 make -j8 release
 ```
 
-### Adding libraries manually on Makefile (example: GLFW + OpenGL)
+## 🔍 Compiler Warning Levels
+
+Control compiler warning strictness with the **`WARN_LEVEL`** variable. Perfect for managing warnings in different project phases or integrating with CI/CD pipelines.
+
+### Available Levels
+
+| Level | Flags | Use Case |
+|-------|-------|----------|
+| **minimal** | Base warnings only (`-Wall -Wextra -pedantic-errors`) | Legacy code, third-party libraries |
+| **normal** | + Type conversion, logic, and safety checks | Standard development (recommended) |
+| **strict** | + Code quality warnings (`-Wshadow`, `-Wunused`, etc) | New projects, CI/CD pipelines (default) |
+
+### Examples
+
+```bash
+# Production: Strict + Optimization
+make release WARN_LEVEL=strict ARCH=native
+
+# Cross-platform: Balanced with specific compiler
+make WARN_LEVEL=normal CXX=clang++ -j8
+```
+
+### What Each Level Includes
+
+**minimal:**
+```
+-Wall -Wextra -pedantic-errors
+```
+
+**normal** (minimal +):
+```
+-Wconversion -Wsign-conversion -Wdouble-promotion
+-Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict
+-Wnull-dereference -Wformat=2 -Wunreachable-code
+```
+
+**strict** (normal +):
+```
+-Wshadow -Wunused -Wunused-parameter
+```
+
+### Warning Behavior by Build Type
+
+- **Release builds**: Warnings become errors (`-Werror`) regardless of `WARN_LEVEL`
+- **Debug builds**: Warnings remain as warnings for easier iteration
+
+```bash
+# Warnings as errors
+make release WARN_LEVEL=minimal
+
+# Warnings only
+make debug WARN_LEVEL=strict
+```
+
+### Adding Libraries manually on Makefile (example: GLFW + OpenGL)
 
 Uncomment/add in the libraries section:
 
