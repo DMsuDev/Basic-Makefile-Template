@@ -1,0 +1,100 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        build-type: [debug, release, relwithdebinfo]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up build environment
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          choco install mingw -y
+        elif [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          brew install gcc
+        fi
+      shell: bash
+    
+    - name: Build donut-basic example (${{ matrix.build-type }})
+      run: |
+        cd examples/donut-basic
+        make BUILD_TYPE=${{ matrix.build-type }} clean all
+      shell: bash
+    
+    - name: Build donut-basic with analyze
+      if: matrix.build-type == 'debug' && runner.os == 'Linux'
+      run: |
+        cd examples/donut-basic
+        make analyze
+      shell: bash
+    
+    - name: Check compilation warnings
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        cd examples/donut-basic
+        make BUILD_TYPE=debug clean all 2>&1 | tee build.log
+        if grep -i "error:" build.log; then
+          exit 1
+        fi
+      shell: bash
+
+  test-examples:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up build environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential
+    
+    - name: Build all examples
+      run: |
+        make clean all
+    
+    - name: Verify executable exists
+      run: |
+        [ -f "examples/donut-basic/build/app/donut" ] || exit 1
+        echo "✓ Donut executable built successfully"
+
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up build environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cppcheck clang-tidy
+    
+    - name: Run cppcheck
+      run: |
+        cppcheck --enable=all --suppress=missingIncludeSystem \
+          examples/donut-basic/src/ \
+          templates/*/
+    
+    - name: Static analysis with make analyze
+      continue-on-error: true
+      run: |
+        cd examples/donut-basic
+        make analyze
