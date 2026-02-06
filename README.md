@@ -1,6 +1,6 @@
 # Modern C++ Makefile Template
 
-[![Make](https://img.shields.io/badge/Build-Make-6D00CC?style=flat&logo=cmake&logoColor=white)](https://www.gnu.org/software/make/)
+![Make](https://img.shields.io/badge/Build-Make-6D00CC?style=flat&logo=cmake&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey?style=flat)
 [![C](https://img.shields.io/badge/Language-C-A8B9CC?style=flat&logo=c)](<https://en.wikipedia.org/wiki/C_(programming_language)>)
 [![C++](https://img.shields.io/badge/Language-C%2B%2B-00599C?style=flat&logo=cplusplus&logoColor=white)](https://isocpp.org/)
@@ -187,11 +187,11 @@ make -j8 release
 
 The Makefile automatically selects the best LTO variant based on your compiler:
 
-| Compiler | LTO Type | Benefit |
-|----------|----------|---------|
+| Compiler          | LTO Type     | Benefit                               |
+| ----------------- | ------------ | ------------------------------------- |
 | **Clang/clang++** | `-flto=thin` | Faster compilation, good optimization |
-| **GCC/g++** | `-flto=auto` | Best optimization, slower linking |
-| **Disabled** | (none) | Fastest build time |
+| **GCC/g++**       | `-flto=auto` | Best optimization, slower linking     |
+| **Disabled**      | (none)       | Fastest build time                    |
 
 ```bash
 # Enable LTO (default in release builds)
