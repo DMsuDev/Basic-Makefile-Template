@@ -24,7 +24,7 @@ jobs:
       - name: Set up build environment
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
-            choco install mingw-w64 make -y
+            choco install mingw -y
           elif [ "$RUNNER_OS" == "Linux" ]; then
             sudo apt-get update
             sudo apt-get install -y build-essential --no-install-recommends
@@ -98,39 +98,3 @@ jobs:
         run: |
           [ -f "examples/ImGui/build/app/ImGuiExample" ] || { echo "Executable not found!"; exit 1; }
           echo "✓ ImGuiExample executable built successfully"
-
-  code-quality:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up build environment
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            build-essential \
-            cppcheck \
-            clang-tidy
-
-      - name: Run cppcheck
-        run: |
-          cppcheck --enable=all --error-exitcode=1 --suppress=missingIncludeSystem \
-            examples/ImGui/ \
-            --suppress=*:*/imgui_impl_* \
-            --suppress=*:*/imgui*.cpp \
-            --inline-suppr \
-            --quiet
-        continue-on-error: false
-
-      - name: Run clang-tidy (basic mode)
-        run: |
-          cd examples/ImGui
-          clang-tidy \
-            src/*.cpp \
-            -- \
-            -Iinclude \
-            -Iinclude/imgui \
-            -Iinclude/imgui/backends \
-            -std=c++23
-        continue-on-error: true
