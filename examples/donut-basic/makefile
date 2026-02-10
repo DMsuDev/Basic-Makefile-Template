@@ -14,7 +14,7 @@
 
 APP_NAME    ?= donut
 SRC_EXT     ?= cpp
-LANGUAGE    ?= c++23
+CXX_STD     ?= c++23
 CXX         ?= g++
 USE_CONSOLE ?= true
 
@@ -31,7 +31,7 @@ DEP_DIR       := $(BUILD_BASE)/dep
 
 # ─── Compiler & Linker flags (base) ─────────────────────────────────────────────
 
-CXXFLAGS_BASE := -std=$(LANGUAGE) -fdiagnostics-color=always
+CXXFLAGS_BASE := -std=$(CXX_STD) -fdiagnostics-color=always
 
 # Warning Level Configuration
 # Options: minimal, normal, strict (default: minimal)
@@ -90,18 +90,40 @@ endif
 
 UNAME_S := $(shell uname -s 2>/dev/null || echo Unknown)
 
-RM := rm -rf
 ifeq ($(findstring Windows,$(OS)),Windows)
+    # Choose command style depending on shell (PowerShell vs cmd)
+    ifdef PSModulePath
+        RM      := rm -rf
+        MKDIR   := mkdir -p
+        FIXPATH = $1
+    else
+        RM      := rmdir /S /Q
+        MKDIR   := mkdir
+        FIXPATH = $(subst /,\,$1)
+    endif
+
     IS_WINDOWS := yes
-    MKDIR      := mkdir
     EXE_EXT    := .exe
+
 else ifeq ($(UNAME_S),Darwin)
     IS_MACOS   := yes
+    RM         := rm -rf
     MKDIR      := mkdir -p
+    FIXPATH    = $1
     EXE_EXT    :=
-else
+
+else ifeq ($(UNAME_S),Linux)
     IS_LINUX   := yes
+    RM         := rm -rf
     MKDIR      := mkdir -p
+    FIXPATH    = $1
+    EXE_EXT    :=
+
+else
+    # Fallback for unknown systems
+    RM         := rm -rf
+    MKDIR      := mkdir -p
+    FIXPATH    = $1
     EXE_EXT    :=
 endif
 
@@ -132,15 +154,14 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
 all: clean-banner dirs $(BIN_DIR)/$(TARGET)
 
 dirs:
-	@$(MKDIR) "$(BIN_DIR)" 2>/dev/null || true
-	@$(MKDIR) "$(OBJ_DIR)" 2>/dev/null || true
-	@$(MKDIR) "$(DEP_DIR)" 2>/dev/null || true
-	@mkdir -p "$(DEP_DIR)" 2>/dev/null || true
+	@$(MKDIR) "$(call FIXPATH,$(BIN_DIR))" 2>/dev/null || true
+	@$(MKDIR) "$(call FIXPATH,$(OBJ_DIR))" 2>/dev/null || true
+	@$(MKDIR) "$(call FIXPATH,$(DEP_DIR))" 2>/dev/null || true
 
 $(OBJ_DIR)/%.o : %.$(SRC_EXT)
 	@printf "[Compiling] → %s\n" "$<"
-	@mkdir -p "$(@D)"
-	@mkdir -p "$(DEP_DIR)/$(dir $*)"
+	@$(MKDIR) "$(call FIXPATH,$(@D))"
+	@$(MKDIR) "$(call FIXPATH,$(DEP_DIR)/$(dir $*))"
 	@if $(CXX) $(CXXFLAGS) $(INCLUDES) $(DEPFLAGS) -c $< -o $@; then \
 		printf "  ✓ Success\n"; \
 	else \
@@ -195,14 +216,14 @@ run: release
 
 clean:
 	@printf "\n───────── Cleaning\n"
-	@$(RM) "$(OBJ_DIR)" 2>/dev/null || true
-	@$(RM) "$(DEP_DIR)" 2>/dev/null || true
-	@$(RM) "$(BIN_DIR)/$(TARGET)" 2>/dev/null || true
+	@$(RM) "$(call FIXPATH,$(OBJ_DIR))" 2>/dev/null || true
+	@$(RM) "$(call FIXPATH,$(DEP_DIR))" 2>/dev/null || true
+	@$(RM) "$(call FIXPATH,$(BIN_DIR)/$(TARGET))" 2>/dev/null || true
 	@printf "  ✓ Cleaned build artifacts\n"
 
 full-clean:
 	@printf "\n───────── Full Clean\n"
-	@$(RM) "$(BUILD_BASE)" 2>/dev/null || true
+	@$(RM) "$(call FIXPATH,$(BUILD_BASE))" 2>/dev/null || true
 	@printf "  ✓ Removed build directory\n"
 
 # ─── Info targets ─────────────────────────────────────────────────────────────
@@ -222,7 +243,7 @@ help:
 	@printf "Configuration Variables:\n"
 	@printf "  APP_NAME      App name (default: $(APP_NAME))\n"
 	@printf "  CXX           Compiler (default: $(CXX))\n"
-	@printf "  LANGUAGE      C++ standard (default: $(LANGUAGE))\n"
+	@printf "  CXX_STD       C++ standard (default: $(CXX_STD))\n"
 	@printf "  WARN_LEVEL    Warning level: minimal, normal, strict (default: strict)\n\n"
 	@printf "Examples:\n"
 	@printf "  make debug                      # Debug with all warnings\n"
@@ -234,7 +255,7 @@ info:
 	@printf "  App Name      : $(APP_NAME)\n"
 	@printf "  Target        : $(TARGET)\n"
 	@printf "  Compiler      : $(CXX)\n"
-	@printf "  C++ Standard  : $(LANGUAGE)\n"
+	@printf "  C++ Standard  : $(CXX_STD)\n"
 	@printf "  Sources       : $(words $(SOURCES))\n"
 	@printf "  Source Dirs   : $(SOURCE_DIRS)\n"
 	@printf "  Include Dirs  : $(INCLUDE_DIRS)\n"
