@@ -271,21 +271,19 @@ endif
 
 ifeq ($(IS_LINUX),yes)
     # GLFW on Linux
-    LIBS += -lglfw
-
-    # OpenGL + X11 stack
-    LIBS += -lGL -ldl -lpthread 
-    LIBS += -lXrandr -lXinerama -lXcursor -lXi
+    LIBS += `pkg-config --static --libs glfw3`
 endif
 
 ifeq ($(IS_MACOS),yes)
-	LIBS += -lglfw
+	BREW_PREFIX := $(shell brew --prefix 2>/dev/null || echo /usr/local)
+    
+    CXXFLAGS += -I$(BREW_PREFIX)/include
+    LIBS     += -L$(BREW_PREFIX)/lib
+
+	LIBS += `pkg-config --static --libs glfw3`
 
     # macOS frameworks (use -framework instead of -l)
     LIBS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
-	LIBS += -L/usr/local/lib -L/opt/local/lib -L/opt/homebrew/lib
-
-	CXXFLAGS += -I/usr/local/include -I/opt/local/include -I/opt/homebrew/include
 endif
 
 # Final linker command ingredients

@@ -268,17 +268,20 @@ ifeq ($(IS_WINDOWS),yes)
 endif
 
 ifeq ($(IS_LINUX),yes)
-    # OpenGL + X11 stack
-    LIBS += -lGL -ldl -lpthread 
+    LIBS += -lGL -lX11 -ldl -lpthread 
     LIBS += -lXrandr -lXinerama -lXcursor -lXi
 endif
 
 ifeq ($(IS_MACOS),yes)
+	BREW_PREFIX := $(shell brew --prefix 2>/dev/null || echo /usr/local)
+    
+    CXXFLAGS += -I$(BREW_PREFIX)/include
+    LIBS     += -L$(BREW_PREFIX)/lib
+	
+	LIBS +=
+
     # macOS frameworks (use -framework instead of -l)
     LIBS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
-	LIBS += -L/usr/local/lib -L/opt/local/lib -L/opt/homebrew/lib
-
-	CXXFLAGS += -I/usr/local/include -I/opt/local/include -I/opt/homebrew/include
 endif
 
 # Final linker command ingredients
