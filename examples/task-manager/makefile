@@ -23,7 +23,7 @@ CXX         ?= g++
 OPT_RELEASE ?= -O3
 OPT_DEBUG   ?= -Og
 BUILD_TYPE  ?= release
-USE_LTO     ?= true
+USE_LTO     ?= false
 ANALYZE     ?= false
 USE_CONSOLE ?= true
 
