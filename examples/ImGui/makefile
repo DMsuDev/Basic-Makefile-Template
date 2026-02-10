@@ -271,7 +271,7 @@ endif
 
 ifeq ($(IS_LINUX),yes)
     # GLFW on Linux
-    LIBS += `pkg-config --static --libs glfw3`
+    LIBS += `pkg-config --static --libs glfw3` -lGL
 endif
 
 ifeq ($(IS_MACOS),yes)
