@@ -18,7 +18,7 @@
 
 APP_NAME    ?= ImGuiExample
 SRC_EXT     ?= cpp
-LANGUAGE    ?= c++23
+CXX_STD     ?= c++23
 CXX         ?= g++
 OPT_RELEASE ?= -O3
 OPT_DEBUG   ?= -Og
@@ -75,7 +75,7 @@ ifeq ($(WARN_LEVEL),strict)
 else ifeq ($(WARN_LEVEL),normal)
 	ERROFFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY)
 else ifeq ($(WARN_LEVEL),minimal)
-	# Only base flags
+    # Only base flags
 else
 	$(warning WARNING: Unknown WARN_LEVEL='$(WARN_LEVEL)', using 'strict')
 	WARN_LEVEL := strict
@@ -94,11 +94,11 @@ endif
 
 ifeq ($(CXX),cl)
     # MSVC
-    CXXFLAGS := /std:$(LANGUAGE) /W4 /WX
+    CXXFLAGS := /std:$(CXX_STD) /W4 /WX
     OBJDUMP  := dumpbin /DISASM
 else
     # GCC / Clang path (most common)
-    CXXFLAGS := -std=$(LANGUAGE) -fdiagnostics-color=always $(ERRORFLAGS)
+    CXXFLAGS := -std=$(CXX_STD) -fdiagnostics-color=always $(ERRORFLAGS)
     CXXFLAGS += -Wno-unknown-pragmas -Wno-comment
     OBJDUMP  := objdump
 endif
@@ -173,7 +173,7 @@ else ifeq ($(UNAME_S),Darwin)
 	OS_NAME   := macOS
     RM        := rm -rf
     MKDIR     := mkdir -p
-    FIXPATH   := $1
+    FIXPATH   = $1
 	SED       := sed -i ''
 	HOST_ARCH ?= $(shell uname -m)
 
@@ -182,7 +182,7 @@ else ifeq ($(UNAME_S),Linux)
 	OS_NAME   := Linux
     RM        := rm -rf
     MKDIR     := mkdir -p
-    FIXPATH   := $1
+    FIXPATH   = $1
 	SED       := sed -i
 	HOST_ARCH ?= $(shell uname -m)
 endif
@@ -224,23 +224,36 @@ endif
 
 # ─── Color Codes ──────────────────────────────────────────────────────────────
 
-OK_COLOR     := \033[0;32m
-ERROR_COLOR  := \033[0;31m
-WARN_COLOR   := \033[0;33m
-VIOLET_COLOR := \033[0;35m
-INFO_COLOR   := \033[0;34m
-HIGHLIGHT    := \033[1;36m
-BOLD         := \033[1m
-NO_COLOR     := \033[0m
+ifeq ($(VERBOSE),1)
+	OK_COLOR     := \033[0;32m
+	ERROR_COLOR  := \033[0;31m
+	WARN_COLOR   := \033[0;33m
+	VIOLET_COLOR := \033[0;35m
+	INFO_COLOR   := \033[0;34m
+	HIGHLIGHT    := \033[1;36m
+	BOLD         := \033[1m
+	NO_COLOR     := \033[0m
+	
+	TITLE_COLOR   := \033[1;35m
+	LINES_COLOR   := \033[1;30m
+else
+	OK_COLOR      := 
+	ERROR_COLOR   := 
+	WARN_COLOR    := 
+	VIOLET_COLOR  := 
+	INFO_COLOR    := 
+	HIGHLIGHT     := 
+	BOLD          := 
+	NO_COLOR      := 
 
-# Custom colors
-TITLE_COLOR   := \033[1;35m
-LINES_COLOR   := \033[1;30m
+	TITLE_COLOR   := 
+	LINES_COLOR   := 
+endif
 
 # ─── Libraries ───────────────────────────────────────────────────────────────────
 
 # Libraries to link against (use -l)
-LIBS ?= 
+LIBS ?=
 
 ifeq ($(IS_WINDOWS),yes)
     # GLFW on Windows
@@ -257,7 +270,7 @@ ifeq ($(IS_WINDOWS),yes)
 endif
 
 ifeq ($(IS_LINUX),yes)
-   # GLFW on Linux
+    # GLFW on Linux
     LIBS += -lglfw
 
     # OpenGL + X11 stack
@@ -266,8 +279,13 @@ ifeq ($(IS_LINUX),yes)
 endif
 
 ifeq ($(IS_MACOS),yes)
+	LIBS += -lglfw
+
     # macOS frameworks (use -framework instead of -l)
-    LDFLAGS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
+    LIBS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
+	LIBS += -L/usr/local/lib -L/opt/local/lib -L/opt/homebrew/lib
+
+	CXXFLAGS += -I/usr/local/include -I/opt/local/include -I/opt/homebrew/include
 endif
 
 # Final linker command ingredients
@@ -275,6 +293,7 @@ LDFLAGS += $(LIBS) $(CONSOLEFLAGS)
 
 # ─── Recursive Source Discovery ───────────────────────────────────────────────
 
+# Find all source files recursively
 define recurse
 $(wildcard $(1)/*.$(SRC_EXT)) \
 $(foreach d,$(wildcard $(1)/*), \
@@ -315,7 +334,7 @@ dirs:
 	@$(MKDIR) "$(call FIXPATH,$(ASM_DIR))" 2>/dev/null || true
 	@$(MKDIR) "$(call FIXPATH,$(DOC_BUILD))" 2>/dev/null || true
 	@$(MKDIR) "$(call FIXPATH,$(BENCH_DIR))" 2>/dev/null || true
-	
+
 # ─── Primary Build Rules ──────────────────────────────────────────────────────
 
 $(BIN_DIR)/$(TARGET): $(OBJECTS)
@@ -393,7 +412,7 @@ endif
 
 $(DOXYGEN_CONFIG):
 	@printf "$(INFO_COLOR)[Doxygen]$(NO_COLOR) Creating default Doxyfile...\n"
-	@$(MKDIR) $(DOC_BUILD)
+	@$(MKDIR) "$(call FIXPATH,$(DOC_BUILD))" 2>/dev/null || true
 	@doxygen -g $(DOXYGEN_CONFIG)
 
 	@$(SED) 's|^OUTPUT_DIRECTORY .*|OUTPUT_DIRECTORY = $(DOC_BUILD)|' $(DOXYGEN_CONFIG)
@@ -477,7 +496,7 @@ ifeq ($(VERBOSE),1)
 	@printf "$(LINES_COLOR)─── Build: $(TITLE_COLOR)$(APP_NAME)$(NO_COLOR)\n"
 	@printf "  $(INFO_COLOR)Build Type:$(NO_COLOR)     $(BOLD)%s$(NO_COLOR)\n" "$(BUILD_TYPE)"
 	@printf "  $(BOLD)> OS:$(NO_COLOR)           %s\n" "$(OS_NAME)"
-	@printf "  $(BOLD)> Compiler:$(NO_COLOR)     %s ($(LANGUAGE))\n" "$(CXX)"
+	@printf "  $(BOLD)> Compiler:$(NO_COLOR)     %s ($(CXX_STD))\n" "$(CXX)"
 	@printf "  $(BOLD)> Host Arch:$(NO_COLOR)    %s\n" "$(HOST_ARCH)"
 	@printf "  $(BOLD)> Target Arch:$(NO_COLOR)  %s\n" "$(TARGET_ARCH)"
 	@printf "$(LINES_COLOR)────────────────────────────────────────────$(NO_COLOR)\n"
@@ -503,26 +522,26 @@ graph-deps:
 # ─── Clean Rules ──────────────────────────────────────────────────────────────
 
 clean:
-	@printf "\n$(LINES_COLOR)───────$(NO_COLOR) $(TITLE_COLOR)Clean$(NO_COLOR)\n"
+	@printf "$(LINES_COLOR)───────$(NO_COLOR) $(TITLE_COLOR)Clean$(NO_COLOR)\n"
 	@printf "  %-12s : %s\n" "Removing" "OBJ, DEP, ASM, Binary"
-	@$(RM) $(OBJ_DIR) $(DEP_DIR) $(ASM_DIR) "$(BIN_DIR)/$(TARGET)" $(DOC_BUILD) $(BENCH_DIR) 2>/dev/null || true
+	@$(RM) "$(call FIXPATH,$(OBJ_DIR))" "$(call FIXPATH,$(DEP_DIR))" "$(call FIXPATH,$(ASM_DIR))" "$(call FIXPATH,$(BIN_DIR)/$(TARGET))" "$(call FIXPATH,$(DOC_BUILD))" "$(call FIXPATH,$(BENCH_DIR))" 2>/dev/null || true
 	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Done" "$(OBJ_DIR) $(DEP_DIR) $(ASM_DIR) $(BIN_DIR) $(DOC_BUILD) $(BENCH_DIR)"
 	@printf "$(LINES_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 clean-all:
 	@printf "$(LINES_COLOR)───────$(NO_COLOR) $(TITLE_COLOR)Full Clean$(NO_COLOR)\n"
 	@printf "  %-12s \n" " Removing all build artifacts..."
-	@$(RM) "$(BUILD_BASE)" 2>/dev/null || true
+	@$(RM) "$(call FIXPATH,$(BUILD_BASE))" 2>/dev/null || true
 	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Done" "$(BUILD_BASE)"
 	@printf "$(LINES_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 clean-docs:
 	@printf "$(WARN_COLOR)[Cleaning]$(NO_COLOR) Removing documentation...\n"
-	@$(RM) "$(DOC_BUILD)" 2>/dev/null || true
+	@$(RM) "$(call FIXPATH,$(DOC_BUILD))" 2>/dev/null || true
 	@printf "  $(OK_COLOR)✓ Docs cleaned$(NO_COLOR)\n"
 
 clean-bench:
-	@$(RM) -r "$(BENCH_DIR)" 2>/dev/null || true
+	@$(RM) "$(call FIXPATH,$(BENCH_DIR))" 2>/dev/null || true
 	@printf "$(WARN_COLOR)Benchmark directories cleaned$(NO_COLOR)\n"
 
 # ─── Information & Help ────────────────────────────────────────────────────────
@@ -559,7 +578,7 @@ help:
 	@printf "  WARN_LEVEL=<level>   - Warning strictness (minimal, normal, strict)\n"
 	@printf "  BUILD_TYPE=<type>    - Build variant (release, debug, relwithdebinfo)\n"
 	@printf "  ARCH=<arch>          - Target architecture (native, skylake, znver4, etc)\n"
-	@printf "  LANGUAGE=<std>       - C++ standard (c++20, c++23, etc)\n"
+	@printf "  CXX_STD=<std>       - C++ standard (c++20, c++23, etc)\n"
 	@printf "  CXX=<compiler>       - Compiler command (g++, clang++, cl, etc)\n"
 	@printf "  VERBOSE=<0|1>        - Output verbosity (1=detailed, 0=quiet)\n\n"
 
@@ -578,7 +597,7 @@ info:
 	@printf "  %-20s : %s file(s)\n" "Sources"       "$(words $(SOURCES))"
 	@printf "  %-20s : %s\n" "Target"        "$(BIN_DIR)/$(TARGET)"
 	@printf "  %-20s : %s\n" "Compiler"      "$(CXX)"
-	@printf "  %-20s : %s\n" "C++ Standard"  "$(LANGUAGE)"
+	@printf "  %-20s : %s\n" "C++ Standard"  "$(CXX_STD)"
 	@printf "  %-20s : %s\n" "Build Type"    "$(BUILD_TYPE)"
 	@printf "  %-20s : %s\n" "OS"            "$(OS_NAME)"
 	@printf "  %-20s : %s\n" "Host Arch"     "$(HOST_ARCH)"
