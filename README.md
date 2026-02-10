@@ -22,7 +22,7 @@ Designed to be simple, readable, and easy to extend, ideal for game engines, too
 - ✅ **Cross-Platform**: Windows, Linux, macOS with automatic detection
 - ✅ **Build Types**: Multiple configurations (release, debug, relwithdebinfo, analyze) with proper optimization levels
 - ✅ **Architecture Optimization**: Architecture-specific optimization via `ARCH` variable (native, skylake, znver4, armv8-a, etc.)
-- ✅ **Link-Time Optimization (LTO)**: Control LTO with `USE_LTO` flag (enabled by default in release builds)
+- ✅ **Link-Time Optimization (LTO)**: Control LTO with `USE_LTO` flag (disabled by default in release builds)
 - ✅ **Static Analysis**: Built-in `make analyze` target for static code analysis
 - ✅ **Dependency Tracking**: Automatic `.d` file generation
 - ✅ **Assembly Output**: Generate assembly files (`make asm`) and disassembly (`make disassemble`)
@@ -46,7 +46,7 @@ git clone https://github.com/DMsuDev/Basic-Makefile-Template.git
 cd Basic-Makefile-Template
 ```
 
-### Steps to build and run the examples:
+### Steps to build and run the examples
 
 ```bash
 # Option 1: View the spinning ASCII donut (terminal animation)
@@ -140,11 +140,11 @@ These variables control the behavior of the project and can be overridden direct
 | ---------------- | -------------------------------------------- | ------------- |
 | **APP_NAME**     | Output executable name (no extension)        | `ProjectName` |
 | **SRC_EXT**      | Source file extension                        | `cpp`         |
-| **LANGUAGE**     | C/C++ standard                               | `c++23`       |
+| **CXX_STD**      | C/C++ standard                               | `c++23`       |
 | **CXX**          | Compiler to use                              | `g++`         |
 | **USE_CONSOLE**  | Show console window on Windows               | `true`        |
 | **BUILD_TYPE**   | Build variant (release/debug/relwithdebinfo) | `release`     |
-| **USE_LTO**      | Enable Link-Time Optimization                | `true`        |
+| **USE_LTO**      | Enable Link-Time Optimization                | `false`       |
 | **ANALYZE**      | Enable static analysis flags                 | `false`       |
 | **ARCH**         | Target architecture (`-march=`)              | `native`      |
 | **WARN_LEVEL**   | Warning strictness (minimal/normal/strict)   | `minimal`     |
@@ -160,7 +160,7 @@ These variables control the behavior of the project and can be overridden direct
 make APP_NAME=MyApp
 
 # Use Clang++ and C++20 instead of G++ and C++23 (default values)
-make CXX=clang++ LANGUAGE=c++20
+make CXX=clang++ CXX_STD=c++20
 
 # Build without console window on Windows
 make release USE_CONSOLE=false
