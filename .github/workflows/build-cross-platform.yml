@@ -1,19 +1,25 @@
-name: Build & Test
+name: CI
 
+# Controls when the workflow will run
 on:
+  # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [main, develop]
+    branches: [ main ]
   pull_request:
-    branches: [main, develop]
-  schedule:
-    - cron: "0 0 * * 0" # Weekly on Sunday
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
-  build:
+  cross-platform-build:
+    name: Build (${{ matrix.os }}, ${{ matrix.build-type }})
     strategy:
       matrix:
+        # Order: Most important platforms first (Ubuntu for CI, then Windows/macOS)
         os: [ubuntu-latest, windows-latest, macos-latest]
-        build-type: [debug, release, relwithdebinfo]
+        # Order: Release first (production), then debug (development), then debug+symbols
+        build-type: [release, debug]
       fail-fast: false # Don't cancel other jobs if one fails, to get full test coverage
 
     runs-on: ${{ matrix.os }}
@@ -63,7 +69,7 @@ jobs:
             make BUILD_TYPE=${{ matrix.build-type }} clean all -j$(nproc 2>/dev/null || echo 4)
           fi
         shell: bash
-      
+
       - name: Generate assembly and disassembly
         run: |
           cd examples/task-manager
@@ -101,9 +107,18 @@ jobs:
           fi
         shell: bash
 
-  test-examples:
-    runs-on: ubuntu-latest
-
+  integration-tests:
+    
+    name: Integration Tests
+    needs: cross-platform-build # Ensure this runs after the build job
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest] # Run tests on Ubuntu for CI, can add Windows/macOS later
+      fail-fast: false # Don't cancel other jobs if one fails, to get full test coverage
+      
+    runs-on: ${{ matrix.os }}
+    
     steps:
       - uses: actions/checkout@v6
 

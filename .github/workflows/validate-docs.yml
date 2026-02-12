@@ -1,0 +1,70 @@
+name: Validate Documentation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'README.md'
+      - 'examples/**/README.md'
+      - 'examples/**/docs/**'
+      - '.github/workflows/validate-docs.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'README.md'
+      - 'examples/**/README.md'
+      - 'examples/**/docs/**'
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+
+# Avoid running multiple instances of this workflow simultaneously on the same branch, which can happen with multiple pushes or PRs. This ensures that only the latest run is active, and previous runs are cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+        
+jobs:
+
+  markdown-lint:
+    name: Markdown Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for accurate linting
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'          # versión LTS
+          cache: 'npm'
+
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli@0.44
+
+      - name: Run markdownlint
+        run: |
+          markdownlint --config .markdownlint.jsonc \
+            "README.md" \
+            "examples/**/README.md" \
+            "examples/**/docs/**/*.md" \
+            || true
+        # The || true prevents the build from breaking if there are warnings (you can remove it if you want strict failure)
+
+  link-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for broken links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-recursive-processing: true
+          use-quiet-mode: false
+          base-branch: main
+          file-extensions: 'md, markdown'

@@ -1,0 +1,37 @@
+name: Build Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "examples/ImGui/**"
+      - ".github/workflows/build-docs.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "examples/ImGui/**"
+
+jobs:  
+  build-doxygen-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Doxygen + dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      - name: Generate documentation (ImGui example)
+        run: |
+          cd examples/ImGui
+          make docs || true
+        continue-on-error: true
+
+      - name: Upload documentation artifact (For debugging purposes)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doxygen-html-docs
+          path: examples/ImGui/build/docs/html/
+          retention-days: 15
