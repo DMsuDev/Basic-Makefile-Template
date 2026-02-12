@@ -5,6 +5,9 @@
 **/bin/
 **/others/
 
+# Docs
+Doxyfile
+
 # Object files
 *.o
 *.obj
