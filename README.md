@@ -122,13 +122,22 @@ make -j8
 make run -j12
 ```
 
-- **Automatic behavior**: When you use `-j` (parallel mode), the **Makefile** automatically reduces verbosity to avoid chaotic interleaved output.
-  - No fancy colors or status icon per file
-  - Only essential messages and errors are shown
-  - This prevents the terminal from becoming a mess when compiling dozens/hundreds of files at once.
-
 - **Note**: Start with `-j4` or `-j8` and increase until you find the sweet spot for your machine (too high can cause memory thrashing if RAM is limited).
-- **On linux**: The verbose mode not deactivates automatically, so you can use `-s` to reduce output if needed.
+- **Output with `-j`**: Colors and per-file status are always shown. If output looks interleaved, use `--output-sync` (alias `-O`) to group each file's output together:
+
+```bash
+make -j8 -Otarget        # group output per compiled file (recommended)
+make -j8 -Oline          # group output per line
+make -j8 -O              # automatic grouping (default, usually same as -Otarget)
+```
+
+> **Note**: `-O` / `--output-sync` requires GNU Make 4.0+. On macOS the default `make` is 3.81, use `gmake` from Homebrew instead.
+
+- **Suppress all output**: Use `-s` (`--silent`) to disable verbose mode entirely:
+
+```bash
+make -j8 -s
+```
 
 ## Customization
 
@@ -334,7 +343,7 @@ MyProject/
 - **No rule to make target**: Verify source files exist in `src/` (or added folders)
 - **Sanitizers not working on Windows**: Disabled by design (partial support in **MinGW**)
 - **Double slashes in paths**: Usually harmless; caused by empty variables in some shells
-- **Colors broken in CI**: Parallel mode auto-disables fancy output
+- **Interleaved output with `-j`**: Use `make -j8 -O` to group output per file (requires GNU Make 4.0+)
 - **Too much output with `-j`**: Use `-jN` `-s` or redirect to log
 - **`clear` command not found (rare)**: On some Windows shells, fallback to `cls` happens automatically
 
