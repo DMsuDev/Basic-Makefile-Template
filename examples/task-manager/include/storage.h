@@ -2,15 +2,12 @@
 
 #include <vector>
 #include "task.h"
-#include <filesystem>  // Cross-platform paths (C++17+)
-#include <nlohmann/json.hpp>  // JSON lib header-only
+#include <filesystem>
+#include <nlohmann/json.hpp> 
 
-/**
- * @brief Storage class for persistent Task management using JSON
- */
+/// Storage class for persistent Task management using JSON
 class Storage {
 public:
-    // Constructor: Finds or creates storage file (next to executable or fallback)
     Storage();
     explicit Storage(const std::string& filename);
 
@@ -20,22 +17,22 @@ public:
     void completeTask(int id);
     void deleteTask(int id);
 
-    // Persistencia
+    // Persistence
     void save() const;
     void load();
 
-    // Utilidades (más código)
+    // Utilities
     bool exists() const;
     size_t getTaskCount() const;
     Task findTaskById(int id) const;
 
 private:
-    std::filesystem::path filePath_;  // Path completo cross-platform
+    std::filesystem::path filePath_;
     std::vector<Task> tasks_;
-    int nextId_;  // Auto-incremental
+    int nextId_;
 
     // Helpers
-    void initialize();  // Common initialization logic
+    void initialize();
     nlohmann::json toJson() const;
     void fromJson(const nlohmann::json& j);
 };

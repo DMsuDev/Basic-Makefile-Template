@@ -50,8 +50,8 @@ void CLI::parseCommand(const std::string& input) {
     try {
         if (cmd == "add") {
             std::string desc;
-            std::getline(iss, desc);  // Tomar el resto como desc
-            if (!desc.empty() && desc[0] == ' ') desc.erase(0, 1);  // Trim space
+            std::getline(iss, desc);
+            if (!desc.empty() && desc[0] == ' ') desc.erase(0, 1);
             handleAdd(desc);
         } else if (cmd == "list") {
             handleList();

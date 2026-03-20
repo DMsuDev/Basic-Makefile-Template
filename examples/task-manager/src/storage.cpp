@@ -141,7 +141,7 @@ json Storage::toJson() const {
             {"completed", task.isCompleted()}
         });
     }
-    return {{"tasks", j}, {"nextId", nextId_}};  // Guardar nextId para persistencia
+    return {{"tasks", j}, {"nextId", nextId_}};  // Save nextId for persistence
 }
 
 void Storage::fromJson(const json& j) {

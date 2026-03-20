@@ -7,7 +7,6 @@ namespace Utils {
 
 void printColored(const std::string& text, const std::string& color) {
 #ifdef _WIN32
-    // En Windows viejo, ignorar colores o usar WinAPI (pero para simpleza, print normal)
     (void)color;  // Silence unused parameter warning
     std::cout << text;
 #else
