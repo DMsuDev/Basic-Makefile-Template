@@ -6,19 +6,19 @@ labels: ""
 assignees: ""
 ---
 
-## Issue Type 🏷️
+## Issue Type
 
-- [ ] 🐛 Bug Report
-- [ ] ✨ Feature Request
-- [ ] 📚 Documentation
-- [ ] ❓ Question / Help
-- [ ] 🔧 Maintenance / Refactor / CI
+- [ ] Bug Report
+- [ ] Feature Request
+- [ ] Documentation
+- [ ] Question / Help
+- [ ] Maintenance / Refactor / CI
 
-## Summary 📝
+## Summary
 
 Clear and concise description of the issue or request.
 
-## Environment 💻
+## Environment
 
 **System Information:**
 
@@ -34,7 +34,7 @@ Clear and concise description of the issue or request.
 
 ---
 
-## 🐛 Bug Report
+## Bug Report
 
 ### Expected Behavior
 
