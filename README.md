@@ -77,10 +77,10 @@ make help
 ```txt
 project/
 ├── build/
-│   ├── app/          ← Executables
-│   ├── obj/          ← Object files (.o)
-│   ├── dep/          ← Dependency files (.d)
-│   └── asm/          ← Assembly files (.s) and disassembly
+│   ├── app/          # Executables
+│   ├── obj/          # Object files (.o)
+│   ├── dep/          # Dependency files (.d)
+│   └── asm/          # Assembly files (.s) and disassembly
 └── src/
 ```
 
@@ -167,7 +167,7 @@ make release USE_CONSOLE=false
 
 # Optimize for specific CPU architecture
 make release ARCH=znver4          # AMD Zen 4
-make release ARCH=skylake         # Intel 6th–9th gen
+make release ARCH=skylake         # Intel 6th-9th gen
 make release ARCH=armv8-a         # ARM (requires cross-compiler)
 
 # Build with debug symbols and optimizations (best for profiling)
@@ -308,7 +308,7 @@ MyProject/
 ### Windows
 
 - MSYS2 (recommended): **UCRT64** or **MINGW64**
-- Compilers: `g++` (MinGW‑w64) or `clang++`
+- Compilers: `g++` (MinGW-w64) or `clang++`
 
 ### Linux / WSL
 
@@ -329,14 +329,14 @@ MyProject/
 
 ## Troubleshooting
 
-- **Linking errors on Linux** → Install missing dev packages (e.g., **libglfw3-dev** on **Ubuntu/WSL**)
-- **`make` not found on Windows** → Use `mingw32-make` (included with **MinGW-w64**).
-- **No rule to make target** → Verify source files exist in `src/` (or added folders)
-- **Sanitizers not working on Windows** → Disabled by design (partial support in **MinGW**)
-- **Double slashes in paths** → Usually harmless; caused by empty variables in some shells
-- **Colors broken in CI** → Parallel mode auto-disables fancy output
-- **Too much output with `-j`** → Use `-jN` `-s` or redirect to log
-- **`clear` command not found (rare)** → On some Windows shells, fallback to `cls` happens automatically
+- **Linking errors on Linux**: Install missing dev packages (e.g., **libglfw3-dev** on **Ubuntu/WSL**)
+- **`make` not found on Windows**: Use `mingw32-make` (included with **MinGW-w64**).
+- **No rule to make target**: Verify source files exist in `src/` (or added folders)
+- **Sanitizers not working on Windows**: Disabled by design (partial support in **MinGW**)
+- **Double slashes in paths**: Usually harmless; caused by empty variables in some shells
+- **Colors broken in CI**: Parallel mode auto-disables fancy output
+- **Too much output with `-j`**: Use `-jN` `-s` or redirect to log
+- **`clear` command not found (rare)**: On some Windows shells, fallback to `cls` happens automatically
 
 ---
 
@@ -346,7 +346,7 @@ If you encounter any issues, platform-specific bugs, or inconsistencies, **your 
 
 ## Contributing
 
-Contributions, issues and feature requests are welcome. </br>
+Contributions, issues and feature requests are welcome.
 Feel free to check the issues page.
 
 ## License
