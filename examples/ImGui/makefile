@@ -340,13 +340,13 @@ $(BIN_DIR)/$(TARGET): $(OBJECTS)
 	@printf "  %-14s : %s\n" "Target" "$(TARGET)"
 	@printf "  %-14s : %s object(s)\n" "Objects" "$(words $(OBJECTS))"
 	@$(CXX) $(OPTFLAGS) $(SANITIZE_FLAGS) $^ -o $@ $(LDFLAGS) \
-		&& printf "  $(OK_COLOR)✓$(NO_COLOR) %-12s : $(OK_COLOR)%s$(NO_COLOR)\n" "Status" "Success" \
-		|| printf "  $(ERROR_COLOR)✗$(NO_COLOR) %-12s : $(ERROR_COLOR)%s$(NO_COLOR)\n" "Status" "FAILED"
+		&& printf "  $(OK_COLOR)[OK]$(NO_COLOR) %-12s : $(OK_COLOR)%s$(NO_COLOR)\n" "Status" "Success" \
+		|| printf "  $(ERROR_COLOR)[FAIL]$(NO_COLOR) %-12s : $(ERROR_COLOR)%s$(NO_COLOR)\n" "Status" "FAILED"
 	@printf "$(LINES_COLOR)────────────────────────────────────────────$(NO_COLOR)\n"
 
 $(OBJ_DIR)/%.o : %.$(SRC_EXT)
 ifeq ($(VERBOSE),1)
-	@printf "  $(OK_COLOR)[✓]$(NO_COLOR) $(OK_COLOR)Compiling$(NO_COLOR)  %-40s " "$<"
+	@printf "  $(OK_COLOR)[OK]$(NO_COLOR) $(OK_COLOR)Compiling$(NO_COLOR)  %-40s " "$<"
 else
 	@printf "[Compiling] %s\n" "$<"
 endif
@@ -356,7 +356,7 @@ endif
 		{ if [ "$(VERBOSE)" = "1" ]; then printf "$(OK_COLOR)[OK]$(NO_COLOR)\n"; fi; } || \
 		{ if [ "$(VERBOSE)" = "1" ]; then \
 			printf "$(ERROR_COLOR)[FAILED]$(NO_COLOR)\n"; \
-			printf "  $(ERROR_COLOR)✗ Compilation failed for $<$(NO_COLOR)\n"; \
+			printf "  $(ERROR_COLOR)[FAIL] Compilation failed for $<$(NO_COLOR)\n"; \
 		else \
 			printf "[ERROR] On compilation %s\n" "$<"; \
 		fi; exit 1; }
@@ -368,18 +368,18 @@ endif
 
 debug: BUILD_TYPE=debug
 debug: clean-banner all
-	@printf "\n$(OK_COLOR)✓ Debug build complete$(NO_COLOR)\n"
+	@printf "\n$(OK_COLOR)[OK] Debug build complete$(NO_COLOR)\n"
 	@printf "$(WARN_COLOR)Note: Debug builds are not optimized and may run slower than release builds.$(NO_COLOR)\n"
 
 release: BUILD_TYPE=release
 release: clean-banner all
-	@printf "\n$(OK_COLOR)✓ Release build complete$(NO_COLOR)\n"
+	@printf "\n$(OK_COLOR)[OK] Release build complete$(NO_COLOR)\n"
 	@printf "$(WARN_COLOR)Note: Release builds are optimized for performance and may be harder to debug.$(NO_COLOR)\n"
 
 
 relwithdebinfo: BUILD_TYPE=relwithdebinfo
 relwithdebinfo: clean-banner all
-	@printf "\n$(OK_COLOR)✓ Release with debug info build complete$(NO_COLOR)\n"
+	@printf "\n$(OK_COLOR)[OK] Release with debug info build complete$(NO_COLOR)\n"
 	@printf "$(WARN_COLOR)Note: This build type includes optimizations and debug symbols, making it suitable for profiling and debugging optimized code.$(NO_COLOR)\n"
 	
 analyze: ANALYZE=true
@@ -387,7 +387,7 @@ analyze: USE_LTO=false
 analyze: BUILD_TYPE=debug
 analyze: OPT_DEBUG=-O0
 analyze: clean-banner all
-	@printf "\n$(WARN_COLOR)⚠ Static analysis enabled - Review output above$(NO_COLOR)\n\n"
+	@printf "\n$(WARN_COLOR)[WARN] Static analysis enabled - Review output above$(NO_COLOR)\n\n"
 
 # ─── Documentation Generation ─────────────────────────────────────────────────
 
@@ -397,14 +397,14 @@ HAS_DOXYGEN    := $(shell command -v doxygen 2>/dev/null)
 # ─── Documentation ────────────────────────────────────────────────────────────
 
 docs: $(DOC_BUILD)/html/index.html
-	@printf "$(OK_COLOR)✓ Documentation generated$(NO_COLOR)\n"
+	@printf "$(OK_COLOR)[OK] Documentation generated$(NO_COLOR)\n"
 
 $(DOC_BUILD)/html/index.html: $(DOXYGEN_CONFIG) | dirs
 ifdef HAS_DOXYGEN
 	@printf "$(INFO_COLOR)[Doxygen]$(NO_COLOR) Generating documentation...\n"
 	@doxygen $(DOXYGEN_CONFIG)
 else
-	@printf "$(ERROR_COLOR)✗ Doxygen not found$(NO_COLOR)\n"
+	@printf "$(ERROR_COLOR)[FAIL] Doxygen not found$(NO_COLOR)\n"
 	@exit 1
 endif
 
@@ -426,7 +426,7 @@ asm: clean-banner dirs
 	@$(foreach src,$(SOURCES), \
 		$(CXX) -S -masm=intel -O2 $(INCLUDES) -o $(ASM_DIR)/$(notdir $(basename $(src))).s $(src); \
 	)
-	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Output" "$(ASM_DIR)"
+	@printf "  $(OK_COLOR)[OK]$(NO_COLOR) %-10s : %s\n" "Output" "$(ASM_DIR)"
 	@printf "$(LINES_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 	
 disassemble: clean-banner all
@@ -434,7 +434,7 @@ disassemble: clean-banner all
 	@printf "  %-12s : %s\n" "Target" "$(TARGET)"
 	@$(OBJDUMP) -d -Mintel -C "$(call FIXPATH,$(BIN_DIR)/$(TARGET))" > "$(ASM_DIR)/$(APP_NAME)_disasm.txt"
 	@$(OBJDUMP) -S -wC "$(call FIXPATH,$(BIN_DIR)/$(TARGET))" > "$(ASM_DIR)/$(APP_NAME)_source.txt"
-	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Output:" "$(ASM_DIR)"
+	@printf "  $(OK_COLOR)[OK]$(NO_COLOR) %-10s : %s\n" "Output:" "$(ASM_DIR)"
 	@printf "$(LINES_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 # ─── Benchmarking ─────────────────────────────────────────────────────────────
@@ -473,14 +473,14 @@ benchmark: clean-banner dirs
 run: release
 	@printf "\n$(LINES_COLOR)───────$(NO_COLOR) $(TITLE_COLOR)Run$(NO_COLOR)\n"
 	@printf "  %-12s : %s\n" "Target" "$(TARGET)"
-	@printf "  $(INFO_COLOR)→ Running...$(NO_COLOR)\n"
+	@printf "  $(INFO_COLOR)Running...$(NO_COLOR)\n"
 	@$(BIN_DIR)/$(TARGET)
 	@printf "$(LINES_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 run-debug: debug
 	@printf "\n$(LINES_COLOR)───────$(NO_COLOR) $(TITLE_COLOR)Run Debug$(NO_COLOR)\n"
 	@printf "  %-12s : %s\n" "Target" "$(TARGET)"
-	@printf "  $(INFO_COLOR)→ Running DEBUG...$(NO_COLOR)\n"
+	@printf "  $(INFO_COLOR)Running DEBUG...$(NO_COLOR)\n"
 	@$(BIN_DIR)/$(TARGET)
 	@printf "$(LINES_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
@@ -523,20 +523,20 @@ clean:
 	@printf "$(LINES_COLOR)───────$(NO_COLOR) $(TITLE_COLOR)Clean$(NO_COLOR)\n"
 	@printf "  %-12s : %s\n" "Removing" "OBJ, DEP, ASM, Binary"
 	@$(RM) "$(call FIXPATH,$(OBJ_DIR))" "$(call FIXPATH,$(DEP_DIR))" "$(call FIXPATH,$(ASM_DIR))" "$(call FIXPATH,$(BIN_DIR)/$(TARGET))" "$(call FIXPATH,$(DOC_BUILD))" "$(call FIXPATH,$(BENCH_DIR))" 2>/dev/null || true
-	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Done" "$(OBJ_DIR) $(DEP_DIR) $(ASM_DIR) $(BIN_DIR) $(DOC_BUILD) $(BENCH_DIR)"
+	@printf "  $(OK_COLOR)[OK]$(NO_COLOR) %-10s : %s\n" "Done" "$(OBJ_DIR) $(DEP_DIR) $(ASM_DIR) $(BIN_DIR) $(DOC_BUILD) $(BENCH_DIR)"
 	@printf "$(LINES_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 clean-all:
 	@printf "$(LINES_COLOR)───────$(NO_COLOR) $(TITLE_COLOR)Full Clean$(NO_COLOR)\n"
 	@printf "  %-12s \n" " Removing all build artifacts..."
 	@$(RM) "$(call FIXPATH,$(BUILD_BASE))" 2>/dev/null || true
-	@printf "  $(OK_COLOR)✓$(NO_COLOR) %-10s : %s\n" "Done" "$(BUILD_BASE)"
+	@printf "  $(OK_COLOR)[OK]$(NO_COLOR) %-10s : %s\n" "Done" "$(BUILD_BASE)"
 	@printf "$(LINES_COLOR)────────────────────────────────────────────$(NO_COLOR)\n\n"
 
 clean-docs:
 	@printf "$(WARN_COLOR)[Cleaning]$(NO_COLOR) Removing documentation...\n"
 	@$(RM) "$(call FIXPATH,$(DOC_BUILD))" 2>/dev/null || true
-	@printf "  $(OK_COLOR)✓ Docs cleaned$(NO_COLOR)\n"
+	@printf "  $(OK_COLOR)[OK] Docs cleaned$(NO_COLOR)\n"
 
 clean-bench:
 	@$(RM) "$(call FIXPATH,$(BENCH_DIR))" 2>/dev/null || true

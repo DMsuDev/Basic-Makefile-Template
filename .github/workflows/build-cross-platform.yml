@@ -99,11 +99,11 @@ jobs:
           # Count actual compilation errors (not warnings)
           ERROR_COUNT=$(grep -c "error:" build.log || true)
           if [ "$ERROR_COUNT" -gt 0 ]; then
-            echo "❌ Compilation errors found:"
+            echo "Compilation errors found:"
             grep "error:" build.log
             exit 1
           else
-            echo "✅ Build successful (warnings are allowed in CI)"
+            echo "Build successful (warnings are allowed in CI)"
           fi
         shell: bash
 
@@ -140,6 +140,6 @@ jobs:
       - name: Verify executables
         run: |
           [ -f "examples/task-manager/build/app/tm" ] || { echo "task-manager executable not found!"; exit 1; }
-          echo "✓ task-manager executable built successfully"
+          echo "task-manager executable built successfully"
           [ -f "examples/donut-basic/build/app/donut" ] || { echo "donut-basic executable not found!"; exit 1; }
-          echo "✓ donut-basic executable built successfully"
+          echo "donut-basic executable built successfully"

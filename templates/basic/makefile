@@ -159,13 +159,13 @@ dirs:
 	@$(MKDIR) "$(call FIXPATH,$(DEP_DIR))" 2>/dev/null || true
 
 $(OBJ_DIR)/%.o : %.$(SRC_EXT)
-	@printf "[Compiling] → %s\n" "$<"
+	@printf "[Compiling] %s\n" "$<"
 	@$(MKDIR) "$(call FIXPATH,$(@D))"
 	@$(MKDIR) "$(call FIXPATH,$(DEP_DIR)/$(dir $*))"
 	@if $(CXX) $(CXXFLAGS) $(INCLUDES) $(DEPFLAGS) -c $< -o $@; then \
-		printf "  ✓ Success\n"; \
+		printf "  [OK] Success\n"; \
 	else \
-		printf "  ✗ Error\n"; \
+		printf "  [FAIL] Error\n"; \
 		exit 1; \
 	fi
 
@@ -174,9 +174,9 @@ $(BIN_DIR)/$(TARGET): $(OBJECTS)
 	@printf "  %-15s: %s\n" "Target" "$(TARGET)"
 	@printf "  %-15s: %s\n" "Objects" "$(words $(OBJECTS))"
 	@if $(CXX) $^ -o $@ $(LDFLAGS) $(LIBS); then \
-		printf "  ✓ Linked successfully\n"; \
+		printf "  [OK] Linked successfully\n"; \
 	else \
-		printf "  ✗ Linking failed\n"; \
+		printf "  [FAIL] Linking failed\n"; \
 		exit 1; \
 	fi
 
@@ -204,12 +204,12 @@ clean-banner:
 	@if [ -t 1 ]; then \
 		if command -v cls >/dev/null 2>&1; then cls; else clear; fi; \
 	fi
-	@printf "\n═══════════════════════════════════════════\n"
+	@printf "\n===========================================\n"
 	@printf "  Building: $(APP_NAME)\n"
-	@printf "═══════════════════════════════════════════\n\n"
+	@printf "===========================================\n\n"
 
 run: release
-	@printf "\n───────── Execution\n"
+	@printf "───────── Execution\n"
 	@$(BIN_DIR)/$(TARGET)
 
 # ─── Cleanup targets ──────────────────────────────────────────────────────────
@@ -219,17 +219,17 @@ clean:
 	@$(RM) "$(call FIXPATH,$(OBJ_DIR))" 2>/dev/null || true
 	@$(RM) "$(call FIXPATH,$(DEP_DIR))" 2>/dev/null || true
 	@$(RM) "$(call FIXPATH,$(BIN_DIR)/$(TARGET))" 2>/dev/null || true
-	@printf "  ✓ Cleaned build artifacts\n"
+	@printf "  [OK] Cleaned build artifacts\n"
 
 full-clean:
 	@printf "\n───────── Full Clean\n"
 	@$(RM) "$(call FIXPATH,$(BUILD_BASE))" 2>/dev/null || true
-	@printf "  ✓ Removed build directory\n"
+	@printf "  [OK] Removed build directory\n"
 
 # ─── Info targets ─────────────────────────────────────────────────────────────
 
 help:
-	@printf "\n═══════ C++ Build System ═══════\n"
+	@printf "\n======= C++ Build System =======\n"
 	@printf "Usage: make [target] [VAR=value]\n\n"
 	@printf "Targets:\n"
 	@printf "  all         Build project (default)\n"
@@ -251,7 +251,7 @@ help:
 	@printf "  make WARN_LEVEL=normal CXX=clang++ # Balanced + clang\n"
 
 info:
-	@printf "\n═══════ Project Info ═══════\n"
+	@printf "\n======= Project Info =======\n"
 	@printf "  App Name      : $(APP_NAME)\n"
 	@printf "  Target        : $(TARGET)\n"
 	@printf "  Compiler      : $(CXX)\n"
