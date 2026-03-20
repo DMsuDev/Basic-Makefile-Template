@@ -17,21 +17,21 @@ Designed to be simple, readable, and easy to extend, ideal for game engines, too
 
 ![Demo](./assets/demo.gif)
 
-## ⭐ Features
+## Features
 
-- ✅ **Cross-Platform**: Windows, Linux, macOS with automatic detection
-- ✅ **Build Types**: Multiple configurations (release, debug, relwithdebinfo, analyze) with proper optimization levels
-- ✅ **Architecture Optimization**: Architecture-specific optimization via `ARCH` variable (native, skylake, znver4, armv8-a, etc.)
-- ✅ **Link-Time Optimization (LTO)**: Control LTO with `USE_LTO` flag (disabled by default in release builds)
-- ✅ **Static Analysis**: Built-in `make analyze` target for static code analysis
-- ✅ **Dependency Tracking**: Automatic `.d` file generation
-- ✅ **Assembly Output**: Generate assembly files (`make asm`) and disassembly (`make disassemble`)
-- ✅ **Parallel Builds**: Multi-core compilation support with automatic verbosity reduction
-- ✅ **Sanitizers**: AddressSanitizer and UndefinedBehaviorSanitizer support in debug builds (Linux/macOS)
-- ✅ **Improved UI**: Better build output with status indicators and build type information
-- ✅ **Two Templates**: Basic (simple) and Advanced (feature-rich)
+- **Cross-Platform**: Windows, Linux, macOS with automatic detection
+- **Build Types**: Multiple configurations (release, debug, relwithdebinfo, analyze) with proper optimization levels
+- **Architecture Optimization**: Architecture-specific optimization via `ARCH` variable (native, skylake, znver4, armv8-a, etc.)
+- **Link-Time Optimization (LTO)**: Control LTO with `USE_LTO` flag (disabled by default in release builds)
+- **Static Analysis**: Built-in `make analyze` target for static code analysis
+- **Dependency Tracking**: Automatic `.d` file generation
+- **Assembly Output**: Generate assembly files (`make asm`) and disassembly (`make disassemble`)
+- **Parallel Builds**: Multi-core compilation support with automatic verbosity reduction
+- **Sanitizers**: AddressSanitizer and UndefinedBehaviorSanitizer support in debug builds (Linux/macOS)
+- **Improved UI**: Better build output with status indicators and build type information
+- **Two Templates**: Basic (simple) and Advanced (feature-rich)
 
-## 🚩 Quick Start - Run the Examples
+## Quick Start - Run the Examples
 
 In the root directory is a main **Makefile** for building three complete examples:
 
@@ -72,7 +72,7 @@ make help
 
 **For help**: Type `make help` in the terminal to see all available commands.
 
-## 📁 Build Output Structure (v1.0.3+)
+## Build Output Structure (v1.0.3+)
 
 ```txt
 project/
@@ -104,7 +104,7 @@ project/
 | `make help`           | Show help message                         | Quick reference                       |
 | `make info`           | Show project configuration summary        | Verify paths, compiler, sources count |
 
-## 🚀 Parallel / Multi-Core Builds (Recommended for Speed)
+## Parallel / Multi-Core Builds (Recommended for Speed)
 
 The **Makefile** fully supports parallel compilation to use multiple **CPU cores** and dramatically reduce build times on modern machines.
 
@@ -130,7 +130,7 @@ make run -j12
 - **Note**: Start with `-j4` or `-j8` and increase until you find the sweet spot for your machine (too high can cause memory thrashing if RAM is limited).
 - **On linux**: The verbose mode not deactivates automatically, so you can use `-s` to reduce output if needed.
 
-## ⚙️ Customization
+## Customization
 
 ### Basic project settings
 
@@ -190,7 +190,7 @@ make release CXX=g++            # Uses -flto=auto (optimized for GCC)
 make -j8 release
 ```
 
-## 🔗 Link-Time Optimization (LTO)
+## Link-Time Optimization (LTO)
 
 The Makefile automatically selects the best LTO variant based on your compiler:
 
@@ -208,9 +208,7 @@ make release USE_LTO=true CXX=clang++    # Automatically uses thin LTO
 make release USE_LTO=false
 ```
 
-### Parallel build with 8 cores (release configuration)
-
-## 🔍 Compiler Warning Levels
+## Compiler Warning Levels
 
 Control compiler warning strictness with the **`WARN_LEVEL`** variable. Perfect for managing warnings in different project phases or integrating with CI/CD pipelines.
 
@@ -285,7 +283,7 @@ ifeq ($(OS_NAME),macOS)
 endif
 ```
 
-## 🗂️ Recommended Project Structure
+## Recommended Project Structure
 
 ```txt
 MyProject/
@@ -305,31 +303,31 @@ MyProject/
 └── Makefile
 ```
 
-## 📦 Requirements
+## Requirements
 
-### 🪟 Windows
+### Windows
 
 - MSYS2 (recommended): **UCRT64** or **MINGW64**
 - Compilers: `g++` (MinGW‑w64) or `clang++`
 
-### 🐧 Linux / WSL
+### Linux / WSL
 
 - `gcc` or `clang`
 - `make`
 - Dev packages depending on your project (e.g., `build-essential`, `libglfw3-dev`, `libgl1-mesa-dev`)
 
-### 🍎 macOS
+### macOS
 
 - Xcode Command Line Tools: `xcode-select --install`
 - Homebrew packages (optional): `brew install gcc clang`
 
-### 🔧 Optional Tools
+### Optional Tools
 
 - `objdump` (for `make disasm`)
 - `gdb` or `lldb` (debugging)
 - `pkg-config` (optional)
 
-## ⚠️ Troubleshooting
+## Troubleshooting
 
 - **Linking errors on Linux** → Install missing dev packages (e.g., **libglfw3-dev** on **Ubuntu/WSL**)
 - **`make` not found on Windows** → Use `mingw32-make` (included with **MinGW-w64**).
@@ -344,15 +342,15 @@ MyProject/
 
 **Note**: This project has been primarily developed and tested on **Windows** and **Linux/WSL**. Support for **macOS** is not guaranteed and may require adjustments.
 
-If you encounter any issues, platform-specific bugs, or inconsistencies, **your feedback is extremely valuable.** 🙏
+If you encounter any issues, platform-specific bugs, or inconsistencies, **your feedback is extremely valuable.**
 
-## 🤝 Contributing
+## Contributing
 
 Contributions, issues and feature requests are welcome. </br>
 Feel free to check the issues page.
 
-## 📜 License
+## License
 
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
 
-Happy coding! ❤️
+Happy coding!

@@ -4,8 +4,6 @@ A mesmerizing 3D donut rendering engine using only ASCII characters and trigonom
 
 ## Features
 
-🎨 **Core Features**
-
 - **Real-time 3D rotation**: Smooth spinning donut in ASCII
 - **Mathematical accuracy**: Proper 3D projection using sine/cosine
 - **Terminal rendering**: Works in any standard terminal
@@ -170,12 +168,12 @@ make help             # Show all targets
 
 ## Platform Compatibility
 
-| Platform | Status    |
-| -------- | --------- |
-| Windows  | ✅ Tested |
-| Linux    | ✅ Tested |
-| macOS    | ✅ Tested |
-| SSH/TTY  | ✅ Full   |
+| Platform | Status |
+| -------- | ------ |
+| Windows  | Tested |
+| Linux    | Tested |
+| macOS    | Tested |
+| SSH/TTY  | Full   |
 
 ## Fun Facts
 

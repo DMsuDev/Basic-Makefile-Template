@@ -5,19 +5,19 @@ title: "PR: Brief description of changes"
 labels: ""
 ---
 
-## Quick Summary 📝
+## Quick Summary
 
 <!-- Provide a brief summary of the changes in this pull request. -->
 
 ## Type of Change
 
-- [ ] 🐛 Bug fix
-- [ ] ✨ New feature
-- [ ] 💥 Breaking change
-- [ ] 📚 Documentation / README update
-- [ ] 🔧 Refactor / code cleanup
-- [ ] 🧪 Tests added / improved
-- [ ] 🔨 CI / build / dependencies
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation / README update
+- [ ] Refactor / code cleanup
+- [ ] Tests added / improved
+- [ ] CI / build / dependencies
 
 ## Main Changes
 
@@ -26,7 +26,7 @@ labels: ""
 ## Performance Impact
 <!-- Describe any performance implications of the changes, if applicable. -->
 
-## Basic Checklist ✅
+## Basic Checklist
 
 - [ ] Compiles without errors
 - [ ] Tested with existing and new tests (if applicable)
