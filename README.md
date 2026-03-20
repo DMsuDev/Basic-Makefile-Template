@@ -1,4 +1,4 @@
-# Modern C++ Makefile Template
+# C++ Makefile Template
 
 ![Make](https://img.shields.io/badge/Build-Make-6D00CC?style=flat&logo=cmake&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey?style=flat)
@@ -254,7 +254,7 @@ make WARN_LEVEL=normal CXX=clang++ -j8
 
 ### Warning Behavior by Build Type
 
-- **Release builds**: Warnings become errors (`-Werror`) regardless of `WARN_LEVEL`
+- **Release builds**: `-Werror` is available but commented out by default — uncomment `#ERRORFLAGS += -Werror` in the makefile to enable it
 - **Debug builds**: Warnings remain as warnings for easier iteration
 
 ```bash
@@ -323,7 +323,7 @@ MyProject/
 
 ### Optional Tools
 
-- `objdump` (for `make disasm`)
+- `objdump` (for `make disassemble`)
 - `gdb` or `lldb` (debugging)
 - `pkg-config` (optional)
 
