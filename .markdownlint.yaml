@@ -1,0 +1,17 @@
+# markdownlint configuration
+# https://github.com/DavidAnson/markdownlint
+default: true
+
+# Allow long lines (common in README tables, links, etc.)
+MD013: false
+
+# Allow duplicate headings in different sections
+MD024:
+  siblings_only: true
+
+# Allow inline HTML (useful for badges, images, etc.)
+MD033:
+  allowed_elements: [img, a, br, hr, details, summary, b, td, table, tr, th]
+
+# Allow bare URLs
+MD034: false
