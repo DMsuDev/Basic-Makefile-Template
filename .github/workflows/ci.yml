@@ -90,11 +90,7 @@ jobs:
         if: matrix.build-type == 'debug' && runner.os == 'Linux'
         run: |
           cd examples/task-manager
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            make clean CXX=clang++ analyze
-          else
-            make clean analyze
-          fi
+          make clean analyze
         shell: bash
 
       - name: Check compilation

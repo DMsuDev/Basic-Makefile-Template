@@ -40,7 +40,7 @@ jobs:
 
       - name: Run markdownlint
         run: |
-          markdownlint --config .markdownlint.jsonc \
+          markdownlint --config .markdownlint.yaml \
             "README.md" \
             "examples/**/README.md" \
             "examples/**/docs/**/*.md" \
