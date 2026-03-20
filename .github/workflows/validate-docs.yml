@@ -15,11 +15,6 @@ on:
       - 'examples/**/README.md'
       - 'examples/**/docs/**'
   workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
-
-# Avoid running multiple instances of this workflow simultaneously on the same branch, which can happen with multiple pushes or PRs. This ensures that only the latest run is active, and previous runs are cancelled.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
         
 jobs:
 
@@ -31,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Fetch all history for accurate linting
 
@@ -58,7 +53,7 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Check for broken links
         uses: gaurav-nelson/github-action-markdown-link-check@v1

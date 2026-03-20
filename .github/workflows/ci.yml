@@ -1,4 +1,4 @@
-name: Cross-Platform Build & Integration Tests
+name: CI Build
 
 # Controls when the workflow will run
 on:
@@ -10,6 +10,12 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
+# Avoid running multiple instances of this workflow simultaneously on the same branch,
+# which can happen with multiple pushes or PRs. 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   cross-platform-build:
