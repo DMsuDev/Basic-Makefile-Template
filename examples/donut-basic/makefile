@@ -74,7 +74,7 @@ endif
 #   - Debug builds keep warnings as warnings for faster iteration
 #   - Release builds fail if any warning occurs (prevents shipping buggy code)
 ifeq (release,$(findstring release,$(BUILD_TYPE)))
-    #ERROFFLAGS += -Werror
+    #ERRORFLAGS += -Werror
 endif
 
 CXXFLAGS      := $(CXXFLAGS_BASE) $(ERRORFLAGS)

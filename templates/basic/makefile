@@ -41,7 +41,7 @@ CXXFLAGS_BASE := -std=$(CXX_STD) -fdiagnostics-color=always
 WARN_LEVEL ?= minimal
 
 # Base warnings (always applied)
-ERROFFLAGS := -Wall -Wextra -pedantic-errors
+ERRORFLAGS := -Wall -Wextra -pedantic-errors
 
 # Type conversion warnings
 WARN_CONVERSION := -Wconversion -Wsign-conversion -Wdouble-promotion
@@ -57,15 +57,15 @@ WARN_QUALITY := -Wshadow -Wunused -Wunused-parameter
 
 # Apply warning level based on WARN_LEVEL setting
 ifeq ($(WARN_LEVEL),strict)
-	ERROFFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY) $(WARN_QUALITY)
+	ERRORFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY) $(WARN_QUALITY)
 else ifeq ($(WARN_LEVEL),normal)
-	ERROFFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY)
+	ERRORFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY)
 else ifeq ($(WARN_LEVEL),minimal)
 	# Only base flags
 else
 	$(warning WARNING: Unknown WARN_LEVEL='$(WARN_LEVEL)', using 'strict')
 	WARN_LEVEL := strict
-	ERROFFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY) $(WARN_QUALITY)
+	ERRORFLAGS += $(WARN_CONVERSION) $(WARN_LOGIC) $(WARN_SAFETY) $(WARN_QUALITY)
 endif
 
 # Convert warnings to errors in release mode
@@ -74,7 +74,7 @@ endif
 #   - Debug builds keep warnings as warnings for faster iteration
 #   - Release builds fail if any warning occurs (prevents shipping buggy code)
 ifeq (release,$(findstring release,$(BUILD_TYPE)))
-    #ERROFFLAGS += -Werror
+    #ERRORFLAGS += -Werror
 endif
 
 CXXFLAGS      := $(CXXFLAGS_BASE) $(ERRORFLAGS)
