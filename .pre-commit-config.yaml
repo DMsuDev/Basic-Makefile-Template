@@ -1,73 +1,57 @@
+# =============================================================================
+# Pre-commit hooks configuration for C++ / CMake project
+# https://pre-commit.com
+#
+# Install:  pre-commit install
+# Run all:  pre-commit run --all-files
+# Update:   pre-commit autoupdate
+# =============================================================================
+default_language_version:
+  python: python3
 repos:
+  # --- General file hygiene ----------------------------------------------
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v6.0.0
     hooks:
-      - id: trailing-whitespace
-        name: Trim trailing whitespace
-        
-      - id: end-of-file-fixer
-        name: Fix end of file
-        
-      - id: check-yaml
-        name: Check YAML syntax
-        args: [--unsafe]
-        
-      - id: check-json
-        name: Check JSON syntax
-        
-      - id: check-merge-conflict
-        name: Check for merge conflicts
-        
-      - id: check-case-conflict
-        name: Check for case conflicts
-        
-      - id: detect-private-key
-        name: Detect private keys
-      
-      - id: check-added-large-files
-        name: Check for large files
-        args: [--maxkb=1000]
+      - id: trailing-whitespace # Remove trailing whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer # Ensure files end with newline
+      - id: check-yaml # Validate YAML syntax
+      - id: check-json # Validate JSON syntax
+      - id: check-xml # Validate XML syntax
+      - id: check-merge-conflict # Detect merge conflict markers
+      - id: check-added-large-files # Prevent giant files from being committed
+        args: [--maxkb=1024]
+      - id: mixed-line-ending # Detect mixed line endings
+        args: [--fix=auto]
+      - id: check-case-conflict # Check for files that would conflict on case-insensitive FS
+      - id: fix-byte-order-marker # Remove UTF-8 BOM
+      - id: detect-private-key # Prevent committing private keys
 
+  # --- Spell checking --------------------------------------------------
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        name: Lint spelling in source files (with --fix)
+        args: [--skip, "build,_deps,*.lock,*.json", --ignore-words-list, "nd,ot,te"]
+        exclude: ^(build/|_deps/)
+
+  # --- Markdown lint ----------------------------------------------------
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.37.0
+    rev: v0.47.0
     hooks:
       - id: markdownlint
-        name: Lint markdown files
+        name: Lint markdown files (with --fix)
         args: [--fix]
         types: [markdown]
-
-  - repo: https://github.com/hadialqattan/pycln
-    rev: v2.4.0
+        exclude: ^(build/|_deps/)
+  
+  # --- YAML ------------------------------------------------------------
+  - repo: https://github.com/google/yamlfmt
+    rev: v0.21.0
     hooks:
-      - id: pycln
-        name: Clean Python imports
-        language_version: python3
-
-  - repo: local
-    hooks:
-      - id: makefile-check
-        name: Check Makefile syntax
-        entry: bash -c 'for file in $(find . -name "makefile" -o -name "Makefile"); do make -n -f "$file" 2>/dev/null || { echo "Invalid Makefile: $file"; exit 1; }; done'
-        language: system
-        types: [file]
-        files: '[Mm]akefile'
-        pass_filenames: false
-
-      - id: no-commit-to-main
-        name: Don't commit to main branch
-        entry: bash -c 'if [[ $(git rev-parse --abbrev-ref HEAD) == "main" ]]; then echo "❌ Cannot commit directly to main branch"; exit 1; fi'
-        language: system
-        always_run: true
-        pass_filenames: false
-
-ci:
-  autofix_commit_msg: |
-    [pre-commit.ci] auto fixes from pre-commit hooks
-
-    for more information, see https://pre-commit.ci
-  autofix_prs: true
-  autoupdate_branch: ''
-  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
-  autoupdate_schedule: weekly
-  skip: [makefile-check, no-commit-to-main]
-  submodules: false
+      - id: yamlfmt
+        name: Format YAML files with yamlfmt
+        args: [--formatter, "indent=2,include_document_start=false,retain_line_breaks=true"]
+        exclude: ^(build/|_deps/|vendor/)
